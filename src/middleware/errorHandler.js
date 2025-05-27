@@ -70,6 +70,7 @@ export const errorHandler = (
 ) => {
   let error = { ...err };
   error.message = err.message;
+  error.statusCode = err.statusCode || 500;
 
   logger.error(`Error ${req.method} ${req.originalUrl}`, {
     error: err.message,

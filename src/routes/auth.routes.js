@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  register,
   login,
   logout,
   refreshToken,
@@ -17,6 +18,13 @@ import { authValidation } from '../validators/auth.validator.js';
 const router = Router();
 
 // Public routes with rate limiting
+router.post(
+  '/register',
+  rateLimiter({ max: 5, windowMs: 60 * 60 * 1000 }), // 5 attempts per hour
+  validateRequest(authValidation.register),
+  register
+);
+
 router.post(
   '/login',
   rateLimiter({ max: 5, windowMs: 15 * 60 * 1000 }), // 5 attempts per 15 minutes

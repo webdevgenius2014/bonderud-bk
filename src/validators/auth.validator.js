@@ -1,6 +1,25 @@
 import Joi from 'joi';
 
 export const authValidation = {
+  register: Joi.object({
+    email: Joi.string().email().required().lowercase(),
+    password: Joi.string()
+      .min(8)
+      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+      .required()
+      .messages({
+        'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+      }),
+    profile: Joi.object({
+      name: Joi.object({
+        en: Joi.string().min(2).max(100).required(),
+        es: Joi.string().min(2).max(100).required()
+      }).required(),
+      phone: Joi.string().pattern(/^\+?[\d\s-()]+$/).allow(''),
+      preferredLanguage: Joi.string().valid('en', 'es').default('en')
+    }).required()
+  }),
+
   login: Joi.object({
     email: Joi.string().email().required().lowercase(),
     password: Joi.string().required()

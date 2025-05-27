@@ -23,6 +23,82 @@ const generateTokens = (userId) => {
   return { accessToken, refreshToken };
 };
 
+export const register = asyncHandler(async (req, res) => {
+  const { email, password, profile } = req.body;
+
+  // Check if user already exists
+  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  if (existingUser) {
+    throw new ApiError('Email already registered', 409, 'EMAIL_EXISTS');
+  }
+
+  // Create new user
+  const user = new User({
+    email: email.toLowerCase(),
+    password,
+    profile: {
+      name: profile.name,
+      phone: profile.phone || '',
+      preferredLanguage: profile.preferredLanguage || 'en'
+    },
+    role: 'viewer', // Default role for new registrations
+    isEmailVerified: false, // Require email verification
+    isActive: true
+  });
+
+  // Generate email verification token
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(verificationToken)
+    .digest('hex');
+
+  user.emailVerificationToken = hashedToken;
+  
+  await user.save();
+
+  // TODO: Send verification email
+  // const verificationUrl = `${env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+  // await sendEmail({
+  //   to: user.email,
+  //   subject: 'Verify Your Email',
+  //   template: 'email-verification',
+  //   data: { verificationUrl, name: user.profile.name }
+  // });
+
+  logger.info('New user registered', { userId: user._id, email: user.email });
+
+  // Generate tokens (allow login but remind to verify email)
+  const { accessToken, refreshToken } = generateTokens(user._id);
+
+  // Store refresh token
+  user.refreshTokens.push({
+    token: refreshToken,
+    createdAt: new Date(),
+    userAgent: req.headers['user-agent'],
+    ipAddress: req.ip
+  });
+
+  await user.save();
+
+  // Prepare user data (exclude sensitive fields)
+  const userData = user.toObject();
+  delete userData.password;
+  delete userData.refreshTokens;
+  delete userData.emailVerificationToken;
+  delete userData.resetPasswordToken;
+  delete userData.resetPasswordExpires;
+  delete userData.loginAttempts;
+  delete userData.lockUntil;
+
+  apiResponse.success(res, {
+    user: userData,
+    accessToken,
+    refreshToken,
+    message: 'Registration successful. Please verify your email.'
+  }, 'Registration successful', 201);
+});
+
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 

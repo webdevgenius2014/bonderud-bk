@@ -13,7 +13,7 @@ export const validateRequest = (schema) => {
         message: detail.message
       }));
 
-      throw new ApiError('Validation error', 400, 'VALIDATION_ERROR', errors);
+      return next(new ApiError('Validation error', 400, 'VALIDATION_ERROR', errors));
     }
 
     req.body = value;
@@ -34,7 +34,7 @@ export const validateQuery = (schema) => {
         message: detail.message
       }));
 
-      throw new ApiError('Validation error', 400, 'VALIDATION_ERROR', errors);
+      return next(new ApiError('Validation error', 400, 'VALIDATION_ERROR', errors));
     }
 
     req.query = value;
@@ -55,7 +55,7 @@ export const validateParams = (schema) => {
         message: detail.message
       }));
 
-      throw new ApiError('Validation error', 400, 'VALIDATION_ERROR', errors);
+      return next(new ApiError('Validation error', 400, 'VALIDATION_ERROR', errors));
     }
 
     req.params = value;
