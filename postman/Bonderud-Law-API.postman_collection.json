@@ -1,0 +1,342 @@
+{
+  "info": {
+    "name": "Bonderud Law API",
+    "_postman_id": "12345678-1234-1234-1234-123456789012",
+    "description": "Complete API collection for Bonderud Law Firm",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@bonderudlaw.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attorneys",
+      "item": [
+        {
+          "name": "List Attorneys (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/attorneys?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Attorney by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/attorneys/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{attorneyId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Attorney",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"en\": \"John Doe\",\n    \"es\": \"John Doe\"\n  },\n  \"title\": {\n    \"en\": \"Associate Attorney\",\n    \"es\": \"Abogado Asociado\"\n  },\n  \"bio\": {\n    \"en\": \"Experienced attorney specializing in criminal defense.\",\n    \"es\": \"Abogado experimentado especializado en defensa criminal.\"\n  },\n  \"contact\": {\n    \"email\": \"john.doe@bonderudlaw.com\",\n    \"phone\": \"+1-555-0123\"\n  },\n  \"barNumber\": \"FL456789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attorneys",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Practice Areas",
+      "item": [
+        {
+          "name": "List Practice Areas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas"]
+            }
+          }
+        },
+        {
+          "name": "Create Practice Area",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"en\": \"Immigration Law\",\n    \"es\": \"Ley de Inmigración\"\n  },\n  \"description\": {\n    \"en\": \"Expert immigration law services\",\n    \"es\": \"Servicios expertos de ley de inmigración\"\n  },\n  \"services\": {\n    \"en\": [\"Visa Applications\", \"Green Cards\", \"Citizenship\"],\n    \"es\": [\"Solicitudes de Visa\", \"Tarjetas Verdes\", \"Ciudadanía\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Case Results",
+      "item": [
+        {
+          "name": "List Case Results",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/case-results?category=criminal-defense",
+              "host": ["{{baseUrl}}"],
+              "path": ["case-results"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "criminal-defense"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "List Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews"]
+            }
+          }
+        },
+        {
+          "name": "Submit Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewer\": {\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane.smith@example.com\",\n    \"phone\": \"+1-555-9999\",\n    \"location\": {\n      \"city\": \"Miami\",\n      \"state\": \"FL\"\n    }\n  },\n  \"rating\": 5,\n  \"title\": {\n    \"en\": \"Excellent Service\",\n    \"es\": \"Servicio Excelente\"\n  },\n  \"content\": {\n    \"en\": \"The team was professional and helpful throughout my case.\",\n    \"es\": \"El equipo fue profesional y servicial durante todo mi caso.\"\n  },\n  \"consentToDisplay\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reviews/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews", "submit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "Submit Contact Form",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formType\": \"consultation\",\n  \"contact\": {\n    \"name\": \"Robert Johnson\",\n    \"email\": \"robert@example.com\",\n    \"phone\": \"+1-555-8888\",\n    \"preferredContact\": \"phone\"\n  },\n  \"subject\": \"Need legal consultation\",\n  \"message\": \"I need help with a criminal defense case. Please contact me as soon as possible.\",\n  \"urgency\": \"urgent\",\n  \"consent\": {\n    \"termsAccepted\": true,\n    \"marketingOptIn\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact", "submit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blog",
+      "item": [
+        {
+          "name": "List Blog Posts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts"]
+            }
+          }
+        },
+        {
+          "name": "List Blog Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/blog/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "categories"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-save tokens from login response",
+          "if (pm.request.url.path.includes('login') && pm.response.code === 200) {",
+          "    const response = pm.response.json();",
+          "    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+          "    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attorneyId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

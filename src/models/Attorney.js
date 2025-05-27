@@ -630,6 +630,4 @@ attorneySchema.statics.searchAttorneys = function(query) {
 };
 
 // Create and export the model
-const Attorney = mongoose.model('Attorney', attorneySchema);
-
-export default Attorney;
+export const Attorney = mongoose.model('Attorney', attorneySchema);

@@ -502,6 +502,4 @@ practiceAreaSchema.methods.getLeadAttorney = function() {
 };
 
 // Create and export the model
-const PracticeArea = mongoose.model('PracticeArea', practiceAreaSchema);
-
-export default PracticeArea;
+export const PracticeArea = mongoose.model('PracticeArea', practiceAreaSchema);

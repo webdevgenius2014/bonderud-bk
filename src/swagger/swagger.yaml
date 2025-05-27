@@ -1,0 +1,2287 @@
+openapi: 3.0.0
+info:
+  title: Bonderud Law Firm API
+  version: 1.0.0
+  description: |
+    REST API for Bonderud Law Firm's bilingual (English/Spanish) website.
+    
+    ## Features
+    - JWT-based authentication with refresh tokens
+    - Role-based access control (admin, editor, viewer)
+    - Bilingual content support (English/Spanish)
+    - Comprehensive user, attorney, and practice area management
+    - File upload support for media assets
+    - Advanced search and filtering capabilities
+    
+    ## Authentication
+    Most endpoints require authentication via JWT Bearer token.
+    Include the token in the Authorization header: `Bearer <token>`
+    
+    ## Rate Limiting
+    API requests are limited to 100 requests per 15 minutes per IP address.
+
+paths:
+  # System Endpoints
+  /:
+    get:
+      tags:
+        - System
+      summary: API Welcome
+      description: Returns basic API information
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Bonderud Law Firm API
+                  version:
+                    type: string
+                    example: v1
+                  endpoints:
+                    type: object
+                    properties:
+                      health:
+                        type: string
+                        example: /health
+                      docs:
+                        type: string
+                        example: /api/docs
+
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health Check
+      description: Check if the API is running and healthy
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: |
+        Register a new user account. 
+        Default role is 'viewer'. Admin must manually upgrade roles.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: |
+        Authenticate user and receive access and refresh tokens.
+        Account will be locked after 5 failed attempts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '423':
+          description: Account locked due to too many failed attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Use refresh token to get new access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: Valid refresh token
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      description: Invalidate refresh token and logout user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+      summary: Request password reset
+      description: Send password reset email to user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Password reset email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+      summary: Reset password
+      description: Reset password using token from email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - password
+              properties:
+                token:
+                  type: string
+                  description: Reset token from email
+                password:
+                  type: string
+                  minLength: 8
+                  description: New password
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/verify-email:
+    post:
+      tags:
+        - Authentication
+      summary: Verify email address
+      description: Verify user email using token from email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Verification token from email
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # User Management Endpoints
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      description: |
+        Retrieve paginated list of users.
+        Requires admin or canViewUsers permission.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum: [admin, editor, viewer]
+          description: Filter by role
+        - in: query
+          name: isActive
+          schema:
+            type: boolean
+          description: Filter by active status
+        - in: query
+          name: isEmailVerified
+          schema:
+            type: boolean
+          description: Filter by email verification status
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by name or email
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags:
+        - Users
+      summary: Create new user
+      description: |
+        Create a new user account.
+        Requires admin role or canCreateUsers permission.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user
+      description: Get authenticated user's profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    patch:
+      tags:
+        - Users
+      summary: Update current user
+      description: Update authenticated user's profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      description: |
+        Get specific user details.
+        Requires admin role or appropriate permissions.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Users
+      summary: Update user
+      description: |
+        Update user details.
+        Requires admin role or canEditUsers permission.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Users
+      summary: Delete user
+      description: |
+        Soft delete a user (marks as deleted).
+        Requires admin role or canDeleteUsers permission.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/{id}/change-password:
+    post:
+      tags:
+        - Users
+      summary: Change user password
+      description: |
+        Admin can change any user's password.
+        Users can only change their own password.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                currentPassword:
+                  type: string
+                  description: Current password (required for non-admin users)
+                password:
+                  type: string
+                  minLength: 8
+                  description: New password
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Attorney Management Endpoints
+  /attorneys:
+    get:
+      tags:
+        - Attorneys
+      summary: Get all attorneys
+      description: Retrieve paginated list of attorneys
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - in: query
+          name: isActive
+          schema:
+            type: boolean
+          description: Filter by active status
+        - in: query
+          name: isPublished
+          schema:
+            type: boolean
+          description: Filter by published status
+        - in: query
+          name: isFeatured
+          schema:
+            type: boolean
+          description: Filter featured attorneys
+        - in: query
+          name: isPartner
+          schema:
+            type: boolean
+          description: Filter partners only
+        - in: query
+          name: practiceArea
+          schema:
+            type: string
+          description: Filter by practice area ID
+        - in: query
+          name: isAcceptingNewClients
+          schema:
+            type: boolean
+          description: Filter attorneys accepting new clients
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Full-text search
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, es]
+            default: en
+          description: Language for content
+      responses:
+        '200':
+          description: List of attorneys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Attorney'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Attorneys
+      summary: Create new attorney
+      description: |
+        Create a new attorney profile.
+        Requires authentication and canManageAttorneys permission.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAttorneyRequest'
+      responses:
+        '201':
+          description: Attorney created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Attorney'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /attorneys/featured:
+    get:
+      tags:
+        - Attorneys
+      summary: Get featured attorneys
+      description: Get list of featured attorneys sorted by display order
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+          description: Number of attorneys to return
+      responses:
+        '200':
+          description: List of featured attorneys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Attorney'
+
+  /attorneys/{id}:
+    get:
+      tags:
+        - Attorneys
+      summary: Get attorney by ID
+      description: Get specific attorney details
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, es]
+            default: en
+          description: Language for content
+      responses:
+        '200':
+          description: Attorney details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Attorney'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Attorneys
+      summary: Update attorney
+      description: |
+        Update attorney details.
+        Requires authentication and canManageAttorneys permission.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAttorneyRequest'
+      responses:
+        '200':
+          description: Attorney updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Attorney'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Attorneys
+      summary: Delete attorney
+      description: |
+        Delete an attorney profile.
+        Requires authentication and canManageAttorneys permission.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Attorney deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /attorneys/{id}/upload-photo:
+    post:
+      tags:
+        - Attorneys
+      summary: Upload attorney photo
+      description: |
+        Upload profile photo for attorney.
+        Requires authentication and canManageAttorneys permission.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - photo
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG, PNG, max 5MB)
+      responses:
+        '200':
+          description: Photo uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                      filename:
+                        type: string
+                      mimetype:
+                        type: string
+                      size:
+                        type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Practice Area Management Endpoints
+  /practice-areas:
+    get:
+      tags:
+        - Practice Areas
+      summary: Get all practice areas
+      description: Retrieve paginated list of practice areas
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/OrderParam'
+        - in: query
+          name: isActive
+          schema:
+            type: boolean
+          description: Filter by active status
+        - in: query
+          name: isPublished
+          schema:
+            type: boolean
+          description: Filter by published status
+        - in: query
+          name: isFeatured
+          schema:
+            type: boolean
+          description: Filter featured areas
+        - in: query
+          name: parentArea
+          schema:
+            type: string
+          description: Filter by parent area ID (null for top-level)
+        - in: query
+          name: hasAttorneys
+          schema:
+            type: boolean
+          description: Filter areas with attorneys
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Full-text search
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, es]
+            default: en
+          description: Language for content
+      responses:
+        '200':
+          description: List of practice areas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PracticeArea'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Practice Areas
+      summary: Create new practice area
+      description: |
+        Create a new practice area.
+        Requires authentication and canManagePracticeAreas permission.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePracticeAreaRequest'
+      responses:
+        '201':
+          description: Practice area created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/PracticeArea'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /practice-areas/hierarchy:
+    get:
+      tags:
+        - Practice Areas
+      summary: Get practice areas hierarchy
+      description: Get complete hierarchical tree structure of practice areas
+      parameters:
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, es]
+            default: en
+          description: Language for content
+      responses:
+        '200':
+          description: Hierarchical structure of practice areas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PracticeAreaHierarchy'
+
+  /practice-areas/{id}:
+    get:
+      tags:
+        - Practice Areas
+      summary: Get practice area by ID
+      description: Get specific practice area details
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, es]
+            default: en
+          description: Language for content
+      responses:
+        '200':
+          description: Practice area details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/PracticeArea'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Practice Areas
+      summary: Update practice area
+      description: |
+        Update practice area details.
+        Requires authentication and canManagePracticeAreas permission.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePracticeAreaRequest'
+      responses:
+        '200':
+          description: Practice area updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/PracticeArea'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Practice Areas
+      summary: Delete practice area
+      description: |
+        Delete a practice area.
+        Requires authentication and canManagePracticeAreas permission.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Practice area deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /practice-areas/{id}/attorneys:
+    get:
+      tags:
+        - Practice Areas
+      summary: Get attorneys in practice area
+      description: Get all attorneys associated with a practice area
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: List of attorneys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Attorney'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  # Reusable parameters
+  parameters:
+    IdParam:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: '^[0-9a-fA-F]{24}$'
+      description: MongoDB ObjectId
+    
+    PageParam:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number
+    
+    LimitParam:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+      description: Items per page
+    
+    SortParam:
+      in: query
+      name: sort
+      schema:
+        type: string
+        default: createdAt
+      description: Field to sort by
+    
+    OrderParam:
+      in: query
+      name: order
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+      description: Sort order
+
+  # Security schemes
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # Reusable schemas
+  schemas:
+    # Common schemas
+    BilingualContent:
+      type: object
+      required:
+        - en
+      properties:
+        en:
+          type: string
+          description: English content
+        es:
+          type: string
+          description: Spanish content
+
+    MediaFile:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        filename:
+          type: string
+        originalName:
+          type: string
+        mimetype:
+          type: string
+        size:
+          type: integer
+        uploadedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+            statusCode:
+              type: integer
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    Pagination:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+        totalPages:
+          type: integer
+        totalItems:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: OK
+        timestamp:
+          type: string
+          format: date-time
+        uptime:
+          type: number
+        environment:
+          type: string
+        version:
+          type: string
+
+    # Authentication schemas
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - profile
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$'
+          description: Must contain uppercase, lowercase, number, and special character
+        profile:
+          type: object
+          required:
+            - firstName
+            - lastName
+          properties:
+            firstName:
+              type: string
+              maxLength: 50
+            lastName:
+              type: string
+              maxLength: 50
+            phone:
+              type: string
+              pattern: '^\+?[\d\s()-]+$'
+            preferredLanguage:
+              type: string
+              enum: [en, es]
+              default: en
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            accessToken:
+              type: string
+            refreshToken:
+              type: string
+            expiresIn:
+              type: integer
+              description: Access token expiry in seconds
+
+    # User schemas
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, editor, viewer]
+        profile:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+            bio:
+              type: string
+            avatar:
+              type: string
+              format: uri
+            phone:
+              type: string
+            department:
+              type: string
+            title:
+              type: string
+            preferredLanguage:
+              type: string
+              enum: [en, es]
+            timezone:
+              type: string
+        permissions:
+          type: object
+          properties:
+            canCreateUsers:
+              type: boolean
+            canEditUsers:
+              type: boolean
+            canDeleteUsers:
+              type: boolean
+            canManageAttorneys:
+              type: boolean
+            canManagePracticeAreas:
+              type: boolean
+            canManageBlogPosts:
+              type: boolean
+            canManageCaseResults:
+              type: boolean
+            canViewContactSubmissions:
+              type: boolean
+            canManageContactSubmissions:
+              type: boolean
+            canManageSettings:
+              type: boolean
+            canAccessAnalytics:
+              type: boolean
+        auth:
+          type: object
+          properties:
+            isEmailVerified:
+              type: boolean
+            lastLogin:
+              type: string
+              format: date-time
+            loginAttempts:
+              type: integer
+            isTwoFactorEnabled:
+              type: boolean
+        isActive:
+          type: boolean
+        isDeleted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lastModified:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - password
+        - profile
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        role:
+          type: string
+          enum: [admin, editor, viewer]
+          default: viewer
+        profile:
+          type: object
+          required:
+            - firstName
+            - lastName
+          properties:
+            firstName:
+              type: string
+              maxLength: 50
+            lastName:
+              type: string
+              maxLength: 50
+            bio:
+              type: string
+              maxLength: 500
+            phone:
+              type: string
+            department:
+              type: string
+              maxLength: 100
+            title:
+              type: string
+              maxLength: 100
+            preferredLanguage:
+              type: string
+              enum: [en, es]
+        permissions:
+          type: object
+          description: Custom permissions (overrides role defaults)
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, editor, viewer]
+        profile:
+          type: object
+          properties:
+            firstName:
+              type: string
+              maxLength: 50
+            lastName:
+              type: string
+              maxLength: 50
+            bio:
+              type: string
+              maxLength: 500
+            phone:
+              type: string
+            department:
+              type: string
+              maxLength: 100
+            title:
+              type: string
+              maxLength: 100
+            preferredLanguage:
+              type: string
+              enum: [en, es]
+        permissions:
+          type: object
+        isActive:
+          type: boolean
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        profile:
+          type: object
+          properties:
+            firstName:
+              type: string
+              maxLength: 50
+            lastName:
+              type: string
+              maxLength: 50
+            bio:
+              type: string
+              maxLength: 500
+            phone:
+              type: string
+            preferredLanguage:
+              type: string
+              enum: [en, es]
+            timezone:
+              type: string
+
+    # Attorney schemas
+    Attorney:
+      type: object
+      properties:
+        _id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        suffix:
+          type: string
+        barNumber:
+          type: string
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        bio:
+          $ref: '#/components/schemas/BilingualContent'
+        shortBio:
+          $ref: '#/components/schemas/BilingualContent'
+        specialties:
+          $ref: '#/components/schemas/BilingualContent'
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        extension:
+          type: string
+        directLine:
+          type: string
+        fax:
+          type: string
+        education:
+          type: array
+          items:
+            type: object
+            properties:
+              institution:
+                $ref: '#/components/schemas/BilingualContent'
+              degree:
+                $ref: '#/components/schemas/BilingualContent'
+              fieldOfStudy:
+                $ref: '#/components/schemas/BilingualContent'
+              graduationYear:
+                type: integer
+              honors:
+                $ref: '#/components/schemas/BilingualContent'
+              isHighlighted:
+                type: boolean
+        experience:
+          type: array
+          items:
+            type: object
+            properties:
+              position:
+                $ref: '#/components/schemas/BilingualContent'
+              company:
+                $ref: '#/components/schemas/BilingualContent'
+              location:
+                $ref: '#/components/schemas/BilingualContent'
+              startDate:
+                type: string
+                format: date
+              endDate:
+                type: string
+                format: date
+              isCurrentPosition:
+                type: boolean
+              achievements:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BilingualContent'
+        certifications:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                $ref: '#/components/schemas/BilingualContent'
+              issuingOrganization:
+                $ref: '#/components/schemas/BilingualContent'
+              issueDate:
+                type: string
+                format: date
+              expirationDate:
+                type: string
+                format: date
+        awards:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                $ref: '#/components/schemas/BilingualContent'
+              organization:
+                $ref: '#/components/schemas/BilingualContent'
+              year:
+                type: integer
+        memberships:
+          type: array
+          items:
+            type: object
+            properties:
+              organization:
+                $ref: '#/components/schemas/BilingualContent'
+              position:
+                $ref: '#/components/schemas/BilingualContent'
+              startYear:
+                type: integer
+              endYear:
+                type: integer
+              isCurrentMember:
+                type: boolean
+        languages:
+          type: array
+          items:
+            type: object
+            properties:
+              language:
+                $ref: '#/components/schemas/BilingualContent'
+              proficiency:
+                type: string
+                enum: [native, fluent, professional, conversational, basic]
+        practiceAreas:
+          type: array
+          items:
+            type: string
+            description: Practice area IDs
+        primaryPracticeArea:
+          type: string
+          description: Primary practice area ID
+        profilePhoto:
+          $ref: '#/components/schemas/MediaFile'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaFile'
+        availability:
+          type: object
+          properties:
+            isAcceptingNewClients:
+              type: boolean
+            preferredContactMethod:
+              type: string
+              enum: [phone, email, form, any]
+            responseTimeExpectation:
+              $ref: '#/components/schemas/BilingualContent'
+            consultationTypes:
+              type: array
+              items:
+                type: string
+                enum: [inPerson, phone, video, email]
+        socialProfiles:
+          type: array
+          items:
+            type: object
+            properties:
+              platform:
+                type: string
+                enum: [linkedin, twitter, facebook, avvo, martindale]
+              url:
+                type: string
+                format: uri
+        personalWebsite:
+          type: string
+          format: uri
+        joiningDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+        isPartner:
+          type: boolean
+        isFeatured:
+          type: boolean
+        isPublished:
+          type: boolean
+        publishedAt:
+          type: string
+          format: date-time
+        displayOrder:
+          type: integer
+        slug:
+          type: string
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateAttorneyRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - phone
+        - title
+        - bio
+        - shortBio
+        - specialties
+        - practiceAreas
+        - joiningDate
+      properties:
+        firstName:
+          type: string
+          maxLength: 50
+        lastName:
+          type: string
+          maxLength: 50
+        middleName:
+          type: string
+          maxLength: 50
+        suffix:
+          type: string
+          maxLength: 10
+        barNumber:
+          type: string
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        bio:
+          $ref: '#/components/schemas/BilingualContent'
+        shortBio:
+          $ref: '#/components/schemas/BilingualContent'
+        specialties:
+          $ref: '#/components/schemas/BilingualContent'
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        extension:
+          type: string
+        directLine:
+          type: string
+        fax:
+          type: string
+        education:
+          type: array
+          items:
+            type: object
+        experience:
+          type: array
+          items:
+            type: object
+        certifications:
+          type: array
+          items:
+            type: object
+        awards:
+          type: array
+          items:
+            type: object
+        memberships:
+          type: array
+          items:
+            type: object
+        languages:
+          type: array
+          items:
+            type: object
+        practiceAreas:
+          type: array
+          items:
+            type: string
+        primaryPracticeArea:
+          type: string
+        availability:
+          type: object
+        socialProfiles:
+          type: array
+          items:
+            type: object
+        personalWebsite:
+          type: string
+          format: uri
+        joiningDate:
+          type: string
+          format: date
+        isPartner:
+          type: boolean
+        isFeatured:
+          type: boolean
+        displayOrder:
+          type: integer
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+
+    UpdateAttorneyRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          maxLength: 50
+        lastName:
+          type: string
+          maxLength: 50
+        middleName:
+          type: string
+          maxLength: 50
+        suffix:
+          type: string
+          maxLength: 10
+        barNumber:
+          type: string
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        bio:
+          $ref: '#/components/schemas/BilingualContent'
+        shortBio:
+          $ref: '#/components/schemas/BilingualContent'
+        specialties:
+          $ref: '#/components/schemas/BilingualContent'
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        extension:
+          type: string
+        directLine:
+          type: string
+        fax:
+          type: string
+        education:
+          type: array
+          items:
+            type: object
+        experience:
+          type: array
+          items:
+            type: object
+        certifications:
+          type: array
+          items:
+            type: object
+        awards:
+          type: array
+          items:
+            type: object
+        memberships:
+          type: array
+          items:
+            type: object
+        languages:
+          type: array
+          items:
+            type: object
+        practiceAreas:
+          type: array
+          items:
+            type: string
+        primaryPracticeArea:
+          type: string
+        availability:
+          type: object
+        socialProfiles:
+          type: array
+          items:
+            type: object
+        personalWebsite:
+          type: string
+          format: uri
+        joiningDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+        isPartner:
+          type: boolean
+        isFeatured:
+          type: boolean
+        isPublished:
+          type: boolean
+        displayOrder:
+          type: integer
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+
+    # Practice Area schemas
+    PracticeArea:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        shortDescription:
+          $ref: '#/components/schemas/BilingualContent'
+        description:
+          $ref: '#/components/schemas/BilingualContent'
+        detailedContent:
+          $ref: '#/components/schemas/BilingualContent'
+        excerpt:
+          $ref: '#/components/schemas/BilingualContent'
+        callToAction:
+          $ref: '#/components/schemas/BilingualContent'
+        featuredImage:
+          $ref: '#/components/schemas/MediaFile'
+        gallery:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaFile'
+        icon:
+          type: string
+        services:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                $ref: '#/components/schemas/BilingualContent'
+              description:
+                $ref: '#/components/schemas/BilingualContent'
+              icon:
+                type: string
+              isHighlighted:
+                type: boolean
+              order:
+                type: integer
+        keyFeatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/BilingualContent'
+        faqs:
+          type: array
+          items:
+            type: object
+            properties:
+              question:
+                $ref: '#/components/schemas/BilingualContent'
+              answer:
+                $ref: '#/components/schemas/BilingualContent'
+              order:
+                type: integer
+              isPublished:
+                type: boolean
+        statistics:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                $ref: '#/components/schemas/BilingualContent'
+              value:
+                type: string
+              description:
+                $ref: '#/components/schemas/BilingualContent'
+              order:
+                type: integer
+        relatedAreas:
+          type: array
+          items:
+            type: string
+            description: Related practice area IDs
+        attorneys:
+          type: array
+          items:
+            type: string
+            description: Attorney IDs
+        leadAttorney:
+          type: string
+          description: Lead attorney ID
+        parentArea:
+          type: string
+          description: Parent practice area ID
+        subAreas:
+          type: array
+          items:
+            type: string
+            description: Sub-area IDs
+        isActive:
+          type: boolean
+        isPublished:
+          type: boolean
+        publishedAt:
+          type: string
+          format: date-time
+        isFeatured:
+          type: boolean
+        displayOrder:
+          type: integer
+        slug:
+          type: string
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            keywords:
+              $ref: '#/components/schemas/BilingualContent'
+            canonicalUrl:
+              type: string
+              format: uri
+            ogImage:
+              type: string
+              format: uri
+            ogTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            ogDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            structuredData:
+              type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreatePracticeAreaRequest:
+      type: object
+      required:
+        - title
+        - shortDescription
+        - description
+        - detailedContent
+        - excerpt
+        - callToAction
+        - seo
+      properties:
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        shortDescription:
+          $ref: '#/components/schemas/BilingualContent'
+        description:
+          $ref: '#/components/schemas/BilingualContent'
+        detailedContent:
+          $ref: '#/components/schemas/BilingualContent'
+        excerpt:
+          $ref: '#/components/schemas/BilingualContent'
+        callToAction:
+          $ref: '#/components/schemas/BilingualContent'
+        icon:
+          type: string
+        services:
+          type: array
+          items:
+            type: object
+        keyFeatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/BilingualContent'
+        faqs:
+          type: array
+          items:
+            type: object
+        statistics:
+          type: array
+          items:
+            type: object
+        relatedAreas:
+          type: array
+          items:
+            type: string
+        attorneys:
+          type: array
+          items:
+            type: string
+        leadAttorney:
+          type: string
+        parentArea:
+          type: string
+        isFeatured:
+          type: boolean
+        displayOrder:
+          type: integer
+        slug:
+          type: string
+        seo:
+          type: object
+          required:
+            - metaTitle
+            - metaDescription
+            - keywords
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            keywords:
+              $ref: '#/components/schemas/BilingualContent'
+            canonicalUrl:
+              type: string
+              format: uri
+            ogImage:
+              type: string
+              format: uri
+            ogTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            ogDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            structuredData:
+              type: object
+
+    UpdatePracticeAreaRequest:
+      type: object
+      properties:
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        shortDescription:
+          $ref: '#/components/schemas/BilingualContent'
+        description:
+          $ref: '#/components/schemas/BilingualContent'
+        detailedContent:
+          $ref: '#/components/schemas/BilingualContent'
+        excerpt:
+          $ref: '#/components/schemas/BilingualContent'
+        callToAction:
+          $ref: '#/components/schemas/BilingualContent'
+        icon:
+          type: string
+        services:
+          type: array
+          items:
+            type: object
+        keyFeatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/BilingualContent'
+        faqs:
+          type: array
+          items:
+            type: object
+        statistics:
+          type: array
+          items:
+            type: object
+        relatedAreas:
+          type: array
+          items:
+            type: string
+        attorneys:
+          type: array
+          items:
+            type: string
+        leadAttorney:
+          type: string
+        parentArea:
+          type: string
+        isActive:
+          type: boolean
+        isPublished:
+          type: boolean
+        isFeatured:
+          type: boolean
+        displayOrder:
+          type: integer
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            keywords:
+              $ref: '#/components/schemas/BilingualContent'
+            canonicalUrl:
+              type: string
+              format: uri
+            ogImage:
+              type: string
+              format: uri
+            ogTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            ogDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            structuredData:
+              type: object
+
+    PracticeAreaHierarchy:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        slug:
+          type: string
+        icon:
+          type: string
+        isActive:
+          type: boolean
+        isPublished:
+          type: boolean
+        displayOrder:
+          type: integer
+        attorneyCount:
+          type: integer
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeAreaHierarchy'
+
+  # Reusable responses
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              message: Validation failed
+              code: VALIDATION_ERROR
+              statusCode: 400
+
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              message: Authentication required
+              code: UNAUTHORIZED
+              statusCode: 401
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              message: Insufficient permissions
+              code: FORBIDDEN
+              statusCode: 403
+
+    NotFound:
+      description: Not found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              message: Resource not found
+              code: NOT_FOUND
+              statusCode: 404
+
+    Conflict:
+      description: Conflict - Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              message: Resource already exists
+              code: CONFLICT
+              statusCode: 409
+
+# Tags for grouping endpoints
+tags:
+  - name: System
+    description: System and health check endpoints
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Users
+    description: User management operations
+  - name: Attorneys
+    description: Attorney profile management
+  - name: Practice Areas
+    description: Practice area management

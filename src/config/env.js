@@ -20,7 +20,7 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.string().transform(Number).pipe(z.number().positive()).default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).pipe(z.number().positive()).default('100'),
   
-  CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  CORS_ORIGIN: z.string().default('http://localhost:5000'),
   CORS_CREDENTIALS: z.string().transform(val => val === 'true').default('true'),
   
   SMTP_HOST: z.string().optional(),

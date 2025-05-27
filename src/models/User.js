@@ -1,23 +1,25 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import env from '../config/env.js';
+import { env } from '../config/env.js';
 
 /**
  * User Profile Schema
  */
 const userProfileSchema = new Schema({
-  firstName: {
-    type: String,
-    required: [true, 'First name is required'],
-    trim: true,
-    maxlength: [50, 'First name cannot exceed 50 characters']
-  },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
-    trim: true,
-    maxlength: [50, 'Last name cannot exceed 50 characters']
+  name: {
+    en: {
+      type: String,
+      required: [true, 'English name is required'],
+      trim: true,
+      maxlength: [100, 'Name cannot exceed 100 characters']
+    },
+    es: {
+      type: String,
+      required: [true, 'Spanish name is required'],
+      trim: true,
+      maxlength: [100, 'Name cannot exceed 100 characters']
+    }
   },
   bio: {
     type: String,
@@ -68,10 +70,16 @@ const userAuthSchema = new Schema({
     type: Boolean,
     default: false
   },
-  emailVerificationToken: String,
+  emailVerificationToken: {
+    type: String,
+    select: false
+  },
   emailVerificationExpires: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
+  resetPasswordToken: {
+    type: String,
+    select: false
+  },
+  resetPasswordExpires: Date,
   lastLogin: Date,
   loginAttempts: {
     type: Number,
@@ -79,48 +87,32 @@ const userAuthSchema = new Schema({
     max: 5
   },
   lockUntil: Date,
-  twoFactorSecret: String,
+  twoFactorSecret: {
+    type: String,
+    select: false
+  },
   isTwoFactorEnabled: {
     type: Boolean,
     default: false
   }
 }, { _id: false });
 
-/**
- * User Permissions Schema
- */
-const userPermissionsSchema = new Schema({
-  canCreateUsers: { type: Boolean, default: false },
-  canEditUsers: { type: Boolean, default: false },
-  canDeleteUsers: { type: Boolean, default: false },
-  canManageAttorneys: { type: Boolean, default: false },
-  canManagePracticeAreas: { type: Boolean, default: false },
-  canManageBlogPosts: { type: Boolean, default: false },
-  canManageCaseResults: { type: Boolean, default: false },
-  canViewContactSubmissions: { type: Boolean, default: false },
-  canManageContactSubmissions: { type: Boolean, default: false },
-  canManageSettings: { type: Boolean, default: false },
-  canAccessAnalytics: { type: Boolean, default: false }
-}, { _id: false });
 
 /**
- * User Session Schema
+ * Refresh Token Schema
  */
-const userSessionSchema = new Schema({
-  refreshToken: String,
-  refreshTokenExpires: Date,
-  deviceInfo: {
-    userAgent: String,
-    ip: String,
-    device: String,
-    browser: String,
-    os: String
+const refreshTokenSchema = new Schema({
+  token: {
+    type: String,
+    required: true
   },
-  lastActivity: {
+  createdAt: {
     type: Date,
     default: Date.now
-  }
-}, { _id: false });
+  },
+  userAgent: String,
+  ipAddress: String
+});
 
 /**
  * Main User Schema
@@ -170,13 +162,10 @@ const userSchema = new Schema({
     default: () => ({})
   },
   permissions: {
-    type: userPermissionsSchema,
-    default: () => ({})
+    type: [String],
+    default: []
   },
-  session: {
-    type: userSessionSchema,
-    default: () => ({})
-  },
+  refreshTokens: [refreshTokenSchema],
   isActive: {
     type: Boolean,
     default: true
@@ -206,12 +195,12 @@ const userSchema = new Schema({
   timestamps: true,
   toJSON: { 
     virtuals: true,
-    transform: function(doc, ret) {
+    transform: function(_doc, ret) {
       delete ret.password;
-      delete ret.auth.passwordResetToken;
+      delete ret.auth.resetPasswordToken;
       delete ret.auth.emailVerificationToken;
       delete ret.auth.twoFactorSecret;
-      delete ret.session.refreshToken;
+      delete ret.refreshTokens;
       return ret;
     }
   },
@@ -219,23 +208,18 @@ const userSchema = new Schema({
 });
 
 // Indexes for performance
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 userSchema.index({ isDeleted: 1 });
-userSchema.index({ 'profile.firstName': 1, 'profile.lastName': 1 });
+userSchema.index({ 'profile.name.en': 1 });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ 'auth.lastLogin': -1 });
 userSchema.index({ 'auth.emailVerificationToken': 1 });
-userSchema.index({ 'auth.passwordResetToken': 1 });
+userSchema.index({ 'auth.resetPasswordToken': 1 });
 
 // Virtual fields
 userSchema.virtual('fullName').get(function() {
-  return `${this.profile.firstName} ${this.profile.lastName}`;
-});
-
-userSchema.virtual('initials').get(function() {
-  return `${this.profile.firstName.charAt(0)}${this.profile.lastName.charAt(0)}`.toUpperCase();
+  return this.profile.name.en || this.profile.name.es;
 });
 
 userSchema.virtual('isLocked').get(function() {
@@ -249,7 +233,7 @@ userSchema.pre('save', async function(next) {
   
   try {
     // Hash password with bcrypt
-    const salt = await bcrypt.genSalt(env.BCRYPT_SALT_ROUNDS);
+    const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
@@ -262,50 +246,63 @@ userSchema.pre('save', function(next) {
   if (this.isModified('role')) {
     switch (this.role) {
       case 'admin':
-        this.permissions = {
-          canCreateUsers: true,
-          canEditUsers: true,
-          canDeleteUsers: true,
-          canManageAttorneys: true,
-          canManagePracticeAreas: true,
-          canManageBlogPosts: true,
-          canManageCaseResults: true,
-          canViewContactSubmissions: true,
-          canManageContactSubmissions: true,
-          canManageSettings: true,
-          canAccessAnalytics: true
-        };
+        this.permissions = [
+          'users.create',
+          'users.read',
+          'users.update',
+          'users.delete',
+          'attorneys.create',
+          'attorneys.read',
+          'attorneys.update',
+          'attorneys.delete',
+          'practice-areas.create',
+          'practice-areas.read',
+          'practice-areas.update',
+          'practice-areas.delete',
+          'blog.create',
+          'blog.read',
+          'blog.update',
+          'blog.delete',
+          'case-results.create',
+          'case-results.read',
+          'case-results.update',
+          'case-results.delete',
+          'contacts.read',
+          'contacts.update',
+          'contacts.delete',
+          'settings.read',
+          'settings.update',
+          'analytics.read'
+        ];
         break;
       case 'editor':
-        this.permissions = {
-          canCreateUsers: false,
-          canEditUsers: false,
-          canDeleteUsers: false,
-          canManageAttorneys: true,
-          canManagePracticeAreas: true,
-          canManageBlogPosts: true,
-          canManageCaseResults: true,
-          canViewContactSubmissions: true,
-          canManageContactSubmissions: true,
-          canManageSettings: false,
-          canAccessAnalytics: true
-        };
+        this.permissions = [
+          'attorneys.create',
+          'attorneys.read',
+          'attorneys.update',
+          'practice-areas.create',
+          'practice-areas.read',
+          'practice-areas.update',
+          'blog.create',
+          'blog.read',
+          'blog.update',
+          'case-results.create',
+          'case-results.read',
+          'case-results.update',
+          'contacts.read',
+          'contacts.update',
+          'analytics.read'
+        ];
         break;
       case 'viewer':
       default:
-        this.permissions = {
-          canCreateUsers: false,
-          canEditUsers: false,
-          canDeleteUsers: false,
-          canManageAttorneys: false,
-          canManagePracticeAreas: false,
-          canManageBlogPosts: false,
-          canManageCaseResults: false,
-          canViewContactSubmissions: true,
-          canManageContactSubmissions: false,
-          canManageSettings: false,
-          canAccessAnalytics: false
-        };
+        this.permissions = [
+          'attorneys.read',
+          'practice-areas.read',
+          'blog.read',
+          'case-results.read',
+          'contacts.read'
+        ];
         break;
     }
   }
@@ -336,8 +333,8 @@ userSchema.methods.generateEmailVerificationToken = function() {
 
 userSchema.methods.generatePasswordResetToken = function() {
   const token = crypto.randomBytes(32).toString('hex');
-  this.auth.passwordResetToken = crypto.createHash('sha256').update(token).digest('hex');
-  this.auth.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  this.auth.resetPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
+  this.auth.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
   return token;
 };
 
@@ -380,6 +377,4 @@ userSchema.statics.findByRole = function(role) {
 };
 
 // Create and export the model
-const User = mongoose.model('User', userSchema);
-
-export default User;
+export const User = mongoose.model('User', userSchema);

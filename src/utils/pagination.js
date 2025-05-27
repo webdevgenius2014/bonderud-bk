@@ -37,3 +37,21 @@ export class Pagination {
     return { [sort]: order === 'asc' ? 1 : -1 };
   }
 }
+
+// Helper function for pagination data
+export const pagination = (page = 1, limit = 10, totalCount = 0) => {
+  const currentPage = Math.max(1, parseInt(page));
+  const itemsPerPage = Math.min(100, Math.max(1, parseInt(limit)));
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const skip = (currentPage - 1) * itemsPerPage;
+
+  return {
+    page: currentPage,
+    limit: itemsPerPage,
+    totalPages,
+    totalCount,
+    hasNextPage: currentPage < totalPages,
+    hasPrevPage: currentPage > 1,
+    skip
+  };
+};
