@@ -1,5 +1,3 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 import { User } from '../models/User.js';
 import { Attorney } from '../models/Attorney.js';
 import { PracticeArea } from '../models/PracticeArea.js';
@@ -8,8 +6,6 @@ import { BlogCategory } from '../models/BlogCategory.js';
 import { BlogPost } from '../models/BlogPost.js';
 import { ClientReview } from '../models/ClientReview.js';
 import database from '../config/database.js';
-import { env } from '../config/env.js';
-import logger from '../config/logger.js';
 
 // Sample data
 const sampleUsers = [

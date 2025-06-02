@@ -222,15 +222,15 @@ export const logout = asyncHandler(async (req, res) => {
 });
 
 export const refreshToken = asyncHandler(async (req, res) => {
-  const { refreshToken } = req.body;
+  const { refreshToken: refreshTokenFromBody } = req.body;
 
-  if (!refreshToken) {
+  if (!refreshTokenFromBody) {
     throw new ApiError('Refresh token required', 400, 'MISSING_TOKEN');
   }
 
   let decoded;
   try {
-    decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET);
+    decoded = jwt.verify(refreshTokenFromBody, env.JWT_REFRESH_SECRET);
   } catch (error) {
     throw new ApiError('Invalid refresh token', 401, 'INVALID_TOKEN');
   }
@@ -242,7 +242,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
   // Check if refresh token exists in user's tokens
   const tokenExists = user.refreshTokens.some(
-    tokenData => tokenData.token === refreshToken
+    tokenData => tokenData.token === refreshTokenFromBody
   );
 
   if (!tokenExists) {
@@ -258,7 +258,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
   // Replace old refresh token with new one
   user.refreshTokens = user.refreshTokens.map(tokenData =>
-    tokenData.token === refreshToken
+    tokenData.token === refreshTokenFromBody
       ? {
           token: newRefreshToken,
           createdAt: new Date(),

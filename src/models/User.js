@@ -1,7 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { env } from '../config/env.js';
 
 /**
  * User Profile Schema
@@ -28,7 +27,7 @@ const userProfileSchema = new Schema({
   avatar: {
     type: String,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return !v || /^https?:\/\/.+/.test(v);
       },
       message: 'Avatar must be a valid URL'
@@ -37,8 +36,8 @@ const userProfileSchema = new Schema({
   phone: {
     type: String,
     validate: {
-      validator: function(v) {
-        return !v || /^\+?[\d\s\-\(\)]{10,}$/.test(v);
+      validator(v) {
+        return !v || /^\+?[\d\s-()]{10,}$/.test(v);
       },
       message: 'Please provide a valid phone number'
     }
@@ -125,7 +124,7 @@ const userSchema = new Schema({
     lowercase: true,
     trim: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
       message: 'Please provide a valid email address'
@@ -136,7 +135,7 @@ const userSchema = new Schema({
     required: [true, 'Password is required'],
     minlength: [8, 'Password must be at least 8 characters long'],
     validate: {
-      validator: function(v) {
+      validator(v) {
         // Password must contain at least one uppercase, one lowercase, one number, and one special character
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(v);
       },
@@ -195,7 +194,7 @@ const userSchema = new Schema({
   timestamps: true,
   toJSON: { 
     virtuals: true,
-    transform: function(_doc, ret) {
+    transform(_doc, ret) {
       delete ret.password;
       delete ret.auth.resetPasswordToken;
       delete ret.auth.emailVerificationToken;
@@ -235,9 +234,9 @@ userSchema.pre('save', async function(next) {
     // Hash password with bcrypt
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
+    return next();
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 

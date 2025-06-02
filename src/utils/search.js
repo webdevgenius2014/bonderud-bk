@@ -290,7 +290,7 @@ export const findRelatedContent = async (model, document, options = {}) => {
 /**
  * Search analytics (for tracking popular searches)
  */
-export const trackSearch = async (query, results, userId = null) => {
+export const trackSearch = async (query, results, _userId = null) => {
   // In production, implement search analytics
   // Can use MongoDB, Redis, or analytics service
   

@@ -6,7 +6,7 @@ export const contactValidation = {
     contact: Joi.object({
       name: Joi.string().trim().min(2).max(100).required(),
       email: Joi.string().email().required(),
-      phone: Joi.string().pattern(/^\+?[\d\s\-\(\)]{10,}$/).required(),
+      phone: Joi.string().pattern(/^\+?[\d\s-()]{10,}$/).required(),
       preferredContact: Joi.string().valid('email', 'phone', 'either').default('either')
     }).required(),
     subject: Joi.string().trim().min(5).max(200).required(),

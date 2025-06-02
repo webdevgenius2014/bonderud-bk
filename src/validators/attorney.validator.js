@@ -80,8 +80,8 @@ export const attorneyValidation = {
     practiceAreas: Joi.array().items(Joi.string().hex().length(24)),
     contact: Joi.object({
       email: Joi.string().email().required(),
-      phone: Joi.string().pattern(/^\+?[\d\s\-\(\)]{10,}$/),
-      officePhone: Joi.string().pattern(/^\+?[\d\s\-\(\)]{10,}$/),
+      phone: Joi.string().pattern(/^\+?[\d\s-()]{10,}$/),
+      officePhone: Joi.string().pattern(/^\+?[\d\s-()]{10,}$/),
       extension: Joi.string().max(10)
     }),
     availability: Joi.object({
@@ -132,8 +132,8 @@ export const attorneyValidation = {
     practiceAreas: Joi.array().items(Joi.string().hex().length(24)),
     contact: Joi.object({
       email: Joi.string().email(),
-      phone: Joi.string().pattern(/^\+?[\d\s\-\(\)]{10,}$/),
-      officePhone: Joi.string().pattern(/^\+?[\d\s\-\(\)]{10,}$/),
+      phone: Joi.string().pattern(/^\+?[\d\s-()]{10,}$/),
+      officePhone: Joi.string().pattern(/^\+?[\d\s-()]{10,}$/),
       extension: Joi.string().max(10)
     }),
     availability: Joi.object({

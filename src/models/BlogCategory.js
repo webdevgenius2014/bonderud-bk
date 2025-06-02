@@ -23,7 +23,7 @@ const blogCategorySchema = new Schema({
       lowercase: true,
       trim: true,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return /^[a-z0-9-]+$/.test(v);
         },
         message: 'Slug must contain only lowercase letters, numbers, and hyphens'
@@ -36,7 +36,7 @@ const blogCategorySchema = new Schema({
       lowercase: true,
       trim: true,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return /^[a-z0-9-]+$/.test(v);
         },
         message: 'Slug must contain only lowercase letters, numbers, and hyphens'
@@ -182,7 +182,7 @@ blogCategorySchema.pre('deleteOne', { document: true, query: false }, async func
     return next(error);
   }
   
-  next();
+  return next();
 });
 
 // Query helpers

@@ -14,7 +14,7 @@ const clientReviewSchema = new Schema({
       lowercase: true,
       trim: true,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
         message: 'Please provide a valid email address'
@@ -25,8 +25,8 @@ const clientReviewSchema = new Schema({
       type: String,
       trim: true,
       validate: {
-        validator: function(v) {
-          return !v || /^\+?[\d\s\-\(\)]{10,}$/.test(v);
+        validator(v) {
+          return !v || /^\+?[\d\s-()]{10,}$/.test(v);
         },
         message: 'Please provide a valid phone number'
       },
@@ -156,7 +156,7 @@ const clientReviewSchema = new Schema({
     type: Boolean,
     required: [true, 'Consent to display is required'],
     validate: {
-      validator: function(v) {
+      validator(v) {
         return v === true;
       },
       message: 'Must consent to display review'
@@ -210,10 +210,10 @@ clientReviewSchema.virtual('displayRating').get(function() {
 clientReviewSchema.pre('save', function(next) {
   // Auto-generate title from content if not provided
   if (!this.title.en && this.content.en) {
-    this.title.en = this.content.en.substring(0, 50) + '...';
+    this.title.en = `${this.content.en.substring(0, 50)  }...`;
   }
   if (!this.title.es && this.content.es) {
-    this.title.es = this.content.es.substring(0, 50) + '...';
+    this.title.es = `${this.content.es.substring(0, 50)  }...`;
   }
   
   // Set approval date when status changes to approved

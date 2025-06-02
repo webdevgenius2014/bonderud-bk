@@ -204,10 +204,10 @@ export const sendBatchEmails = async (recipients, template, language = 'en') => 
 };
 
 // Email queue (for future implementation with Bull/Redis)
-export const queueEmail = async (emailData) => {
+export const queueEmail = async (emailData) => 
   // For now, send immediately
-  return sendEmail(emailData);
+   sendEmail(emailData)
   
   // Future: Add to queue
   // await emailQueue.add('send-email', emailData);
-};
+;

@@ -70,10 +70,10 @@ export const listPracticeAreas = asyncHandler(async (req, res) => {
     const topLevel = practiceAreas.filter(area => !area.parent);
     const children = practiceAreas.filter(area => area.parent);
 
-    const hierarchical = topLevel.map(parent => {
-      const parentObj = parent.toObject();
+    const hierarchical = topLevel.map(parentArea => {
+      const parentObj = parentArea.toObject();
       parentObj.children = children
-        .filter(child => child.parent._id.toString() === parent._id.toString())
+        .filter(child => child.parent._id.toString() === parentArea._id.toString())
         .map(child => child.toObject());
       return parentObj;
     });

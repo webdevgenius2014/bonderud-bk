@@ -24,7 +24,7 @@ const mediaFileSchema = new Schema({
     type: String,
     required: [true, 'Media URL is required'],
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^https?:\/\/.+/.test(v);
       },
       message: 'Media URL must be a valid URL'
@@ -146,7 +146,7 @@ const certificationSchema = new Schema({
   credentialUrl: {
     type: String,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return !v || /^https?:\/\/.+/.test(v);
       },
       message: 'Credential URL must be a valid URL'
@@ -237,7 +237,7 @@ const socialProfileSchema = new Schema({
     type: String,
     required: [true, 'URL is required'],
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^https?:\/\/.+/.test(v);
       },
       message: 'URL must be a valid URL'
@@ -262,7 +262,7 @@ const scheduleSchema = new Schema({
   startTime: {
     type: String,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
       },
       message: 'Start time must be in HH:mm format'
@@ -271,7 +271,7 @@ const scheduleSchema = new Schema({
   endTime: {
     type: String,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
       },
       message: 'End time must be in HH:mm format'
@@ -354,8 +354,8 @@ const attorneySchema = new Schema({
     unique: true,
     sparse: true, // Allow null values but ensure uniqueness when present
     validate: {
-      validator: function(v) {
-        return !v || /^[A-Z0-9\-]+$/i.test(v);
+      validator(v) {
+        return !v || /^[A-Z0-9-]+$/i.test(v);
       },
       message: 'Bar number must contain only letters, numbers, and hyphens'
     }
@@ -378,7 +378,7 @@ const attorneySchema = new Schema({
     lowercase: true,
     trim: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
       message: 'Please provide a valid email address'
@@ -388,8 +388,8 @@ const attorneySchema = new Schema({
     type: String,
     required: [true, 'Phone number is required'],
     validate: {
-      validator: function(v) {
-        return /^\+?[\d\s\-\(\)]{10,}$/.test(v);
+      validator(v) {
+        return /^\+?[\d\s-()]{10,}$/.test(v);
       },
       message: 'Please provide a valid phone number'
     }
@@ -398,8 +398,8 @@ const attorneySchema = new Schema({
   directLine: {
     type: String,
     validate: {
-      validator: function(v) {
-        return !v || /^\+?[\d\s\-\(\)]{10,}$/.test(v);
+      validator(v) {
+        return !v || /^\+?[\d\s-()]{10,}$/.test(v);
       },
       message: 'Please provide a valid direct line number'
     }
@@ -407,8 +407,8 @@ const attorneySchema = new Schema({
   fax: {
     type: String,
     validate: {
-      validator: function(v) {
-        return !v || /^\+?[\d\s\-\(\)]{10,}$/.test(v);
+      validator(v) {
+        return !v || /^\+?[\d\s-()]{10,}$/.test(v);
       },
       message: 'Please provide a valid fax number'
     }
@@ -434,7 +434,7 @@ const attorneySchema = new Schema({
   personalWebsite: {
     type: String,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return !v || /^https?:\/\/.+/.test(v);
       },
       message: 'Personal website must be a valid URL'

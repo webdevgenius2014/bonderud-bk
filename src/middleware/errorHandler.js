@@ -1,6 +1,4 @@
-import { Error as MongooseError } from 'mongoose';
-import jwt from 'jsonwebtoken';
-const { JsonWebTokenError, TokenExpiredError } = jwt;
+// JWT error handling is done in auth middleware
 import logger from '../config/logger.js';
 import env from '../config/env.js';
 
@@ -66,7 +64,7 @@ export const errorHandler = (
   err,
   req,
   res,
-  next
+  _next
 ) => {
   let error = { ...err };
   error.message = err.message;
@@ -92,8 +90,6 @@ export const errorHandler = (
   }
 };
 
-export const asyncHandler = (fn) => {
-  return (req, res, next) => {
+export const asyncHandler = (fn) => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
-};

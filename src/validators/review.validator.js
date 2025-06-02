@@ -1,10 +1,5 @@
 import Joi from 'joi';
 
-const bilingualString = Joi.object({
-  en: Joi.string().required(),
-  es: Joi.string().required()
-});
-
 const bilingualStringOptional = Joi.object({
   en: Joi.string().allow(''),
   es: Joi.string().allow('')
@@ -47,7 +42,7 @@ export const reviewValidation = {
     reviewer: Joi.object({
       name: Joi.string().trim().min(2).max(100).required(),
       email: Joi.string().email().required(),
-      phone: Joi.string().pattern(/^\+?[\d\s\-\(\)]{10,}$/).allow(''),
+      phone: Joi.string().pattern(/^\+?[\d\s-()]{10,}$/).allow(''),
       location: Joi.object({
         city: Joi.string().trim().max(50),
         state: Joi.string().trim().max(50)

@@ -7,7 +7,7 @@ const bilingualName = Joi.object({
 
 const profileSchema = Joi.object({
   name: bilingualName.required(),
-  phone: Joi.string().pattern(/^\+?[\d\s\-\(\)]{10,}$/).allow(''),
+  phone: Joi.string().pattern(/^\+?[\d\s-()]{10,}$/).allow(''),
   preferredLanguage: Joi.string().valid('en', 'es').default('en'),
   timezone: Joi.string().default('America/New_York')
 });

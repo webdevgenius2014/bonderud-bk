@@ -36,7 +36,7 @@ const seoFieldsSchema = new Schema({
   ogImage: {
     type: String,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return !v || /^https?:\/\/.+/.test(v);
       },
       message: 'OG Image must be a valid URL'
@@ -58,7 +58,7 @@ const mediaFileSchema = new Schema({
     type: String,
     required: [true, 'Media URL is required'],
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^https?:\/\/.+/.test(v);
       },
       message: 'Media URL must be a valid URL'
@@ -446,8 +446,7 @@ practiceAreaSchema.statics.getHierarchy = async function() {
     .select('title slug icon displayOrder parentArea')
     .sort({ displayOrder: 1, 'title.en': 1 });
 
-  const buildHierarchy = (parentId = null) => {
-    return areas
+  const buildHierarchy = (parentId = null) => areas
       .filter(area => {
         if (parentId === null) {
           return !area.parentArea;
@@ -462,7 +461,6 @@ practiceAreaSchema.statics.getHierarchy = async function() {
         displayOrder: area.displayOrder,
         children: buildHierarchy(area._id)
       }));
-  };
 
   return buildHierarchy();
 };

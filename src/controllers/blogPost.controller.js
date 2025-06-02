@@ -104,7 +104,7 @@ export const getPost = asyncHandler(async (req, res) => {
   });
 
   // Get related posts if not manually set
-  let relatedPosts = post.relatedPosts;
+  let {relatedPosts} = post;
   if (!relatedPosts.length) {
     relatedPosts = await BlogPost.findRelated(post._id, post.categories, 3);
   }

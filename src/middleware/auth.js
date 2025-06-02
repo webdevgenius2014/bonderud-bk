@@ -45,16 +45,14 @@ export const authenticateToken = asyncHandler(async (req, res, next) => {
 });
 
 export const authorize = (roles = []) => {
-  if (typeof roles === 'string') {
-    roles = [roles];
-  }
+  const roleArray = typeof roles === 'string' ? [roles] : roles;
 
   return (req, res, next) => {
     if (!req.user) {
       throw new ApiError('Authentication required', 401, 'NOT_AUTHENTICATED');
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!roleArray.includes(req.user.role)) {
       throw new ApiError('Insufficient permissions', 403, 'INSUFFICIENT_PERMISSIONS');
     }
 
@@ -62,8 +60,7 @@ export const authorize = (roles = []) => {
   };
 };
 
-export const checkPermission = (permission) => {
-  return (req, res, next) => {
+export const checkPermission = (permission) => (req, res, next) => {
     if (!req.user) {
       throw new ApiError('Authentication required', 401, 'NOT_AUTHENTICATED');
     }
@@ -77,9 +74,8 @@ export const checkPermission = (permission) => {
       throw new ApiError(`Permission required: ${permission}`, 403, 'MISSING_PERMISSION');
     }
 
-    next();
+    return next();
   };
-};
 
 export const optionalAuth = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -103,7 +99,7 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
     // Ignore token errors for optional auth
   }
 
-  next();
+  return next();
 });
 
 export const rateLimiter = (options = {}) => {

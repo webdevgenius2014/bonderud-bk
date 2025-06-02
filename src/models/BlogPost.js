@@ -23,7 +23,7 @@ const blogPostSchema = new Schema({
       lowercase: true,
       trim: true,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return /^[a-z0-9-]+$/.test(v);
         },
         message: 'Slug must contain only lowercase letters, numbers, and hyphens'
@@ -36,7 +36,7 @@ const blogPostSchema = new Schema({
       lowercase: true,
       trim: true,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return /^[a-z0-9-]+$/.test(v);
         },
         message: 'Slug must contain only lowercase letters, numbers, and hyphens'
@@ -91,7 +91,7 @@ const blogPostSchema = new Schema({
     url: {
       type: String,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return !v || /^https?:\/\/.+/.test(v);
         },
         message: 'Featured image must be a valid URL'
@@ -111,7 +111,7 @@ const blogPostSchema = new Schema({
       type: String,
       required: true,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return /^https?:\/\/.+/.test(v);
         },
         message: 'Gallery image must be a valid URL'
@@ -146,7 +146,7 @@ const blogPostSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'BlogPost',
     validate: {
-      validator: function(posts) {
+      validator(posts) {
         return posts.length <= 5;
       },
       message: 'Cannot have more than 5 related posts'
@@ -202,7 +202,7 @@ const blogPostSchema = new Schema({
     canonicalUrl: {
       type: String,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return !v || /^https?:\/\/.+/.test(v);
         },
         message: 'Canonical URL must be a valid URL'
@@ -211,7 +211,7 @@ const blogPostSchema = new Schema({
     ogImage: {
       type: String,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return !v || /^https?:\/\/.+/.test(v);
         },
         message: 'OG image must be a valid URL'
@@ -282,15 +282,15 @@ blogPostSchema.pre('save', function(next) {
 
   // Auto-generate excerpt from content if not provided
   if (!this.excerpt.en && this.content.en) {
-    this.excerpt.en = this.content.en
+    this.excerpt.en = `${this.content.en
       .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .substring(0, 300) + '...';
+      .substring(0, 300)  }...`;
   }
   
   if (!this.excerpt.es && this.content.es) {
-    this.excerpt.es = this.content.es
+    this.excerpt.es = `${this.content.es
       .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .substring(0, 300) + '...';
+      .substring(0, 300)  }...`;
   }
 
   // Calculate reading time (average 200 words per minute)

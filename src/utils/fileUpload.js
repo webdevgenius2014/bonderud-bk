@@ -32,7 +32,7 @@ const localStorage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = `${Date.now()  }-${  Math.round(Math.random() * 1E9)}`;
     const ext = path.extname(file.originalname);
     const name = path.basename(file.originalname, ext)
       .toLowerCase()
@@ -42,12 +42,11 @@ const localStorage = multer.diskStorage({
   }
 });
 
-// Memory storage for cloud uploads
-const memoryStorage = multer.memoryStorage();
+// Memory storage for cloud uploads (if needed in future)
+// const memoryStorage = multer.memoryStorage();
 
 // File filter factory
-const createFileFilter = (type) => {
-  return (req, file, cb) => {
+const createFileFilter = (type) => (req, file, cb) => {
     const fileConfig = fileTypes[type];
     
     if (!fileConfig) {
@@ -74,9 +73,8 @@ const createFileFilter = (type) => {
       ));
     }
 
-    cb(null, true);
+    return cb(null, true);
   };
-};
 
 // Upload configurations
 export const uploadConfig = {
@@ -139,7 +137,7 @@ export const uploadConfig = {
 };
 
 // Cloud upload utility (for future S3/Cloudinary integration)
-export const uploadToCloud = async (file, folder) => {
+export const uploadToCloud = async (file, folder) => 
   // Placeholder for cloud upload
   // In production, integrate with AWS S3, Cloudinary, etc.
   
@@ -155,8 +153,8 @@ export const uploadToCloud = async (file, folder) => {
   // return result.Location;
 
   // For now, return local path
-  return `/uploads/${folder}/${file.filename}`;
-};
+   `/uploads/${folder}/${file.filename}`
+;
 
 // File deletion utility
 export const deleteFile = async (filePath) => {
@@ -177,20 +175,20 @@ export const deleteFile = async (filePath) => {
 };
 
 // Image optimization utility (placeholder)
-export const optimizeImage = async (filePath, options = {}) => {
+export const optimizeImage = async (filePath, _options = {}) => 
   // In production, use sharp or imagemin
   // const sharp = require('sharp');
   // await sharp(filePath)
-  //   .resize(options.width, options.height)
-  //   .jpeg({ quality: options.quality || 80 })
+  //   .resize(_options.width, _options.height)
+  //   .jpeg({ quality: _options.quality || 80 })
   //   .toFile(outputPath);
   
-  return filePath;
-};
+   filePath
+;
 
 // Generate thumbnail
-export const generateThumbnail = async (filePath, width = 300, height = 300) => {
+export const generateThumbnail = async (filePath, _width = 300, _height = 300) => 
   // Placeholder for thumbnail generation
   // Use sharp in production
-  return filePath;
-};
+   filePath
+;

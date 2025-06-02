@@ -1,35 +1,54 @@
-# Bonderud Law Firm API - Project Memory
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+# Bonderud Law Firm API
 
 ## Project Overview
 This is a REST API for the Bonderud Law Firm's bilingual (English/Spanish) website. The API is built with Node.js, Express.js, and MongoDB, featuring JWT authentication, role-based access control, and comprehensive security measures.
 
-## Quick Start
+## Essential Commands
 ```bash
-# Install dependencies
-npm install
+# Development
+npm run dev          # Start with nodemon hot reload
+npm start            # Production mode
 
-# Development mode with hot reload
-npm run dev
+# Testing
+npm test             # Run all tests with Jest
+npm run test:unit    # Run unit tests only  
+npm run test:integration # Run integration tests only
+npm run test:coverage    # Run tests with coverage report
+npm run test:watch   # Watch mode for development
 
-# Production mode
-npm start
+# Code Quality  
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint issues automatically
+npm run format       # Format code with Prettier
 
-# Run linting
-npm run lint
+# Build & Deploy
+npm run build        # Lint and test (CI/CD)
+npm run seed         # Seed database with sample data
+npm run deploy       # Deploy using scripts/deploy.sh
 
-# Fix linting issues
-npm run lint:fix
+# PM2 Process Management
+npm run pm2:start    # Start with PM2
+npm run pm2:restart  # Restart PM2 process
+npm run pm2:logs     # View PM2 logs
 ```
 
 ## Architecture Overview
 
 ### Tech Stack
-- **Runtime**: Node.js v18+ (ES6 modules)
-- **Framework**: Express.js
+- **Runtime**: Node.js v18+ (ES6 modules with `"type": "module"`)
+- **Framework**: Express.js with comprehensive middleware stack
 - **Database**: MongoDB with Mongoose ODM
 - **Authentication**: JWT (access + refresh tokens)
-- **Security**: Helmet, CORS, rate limiting, sanitization
+- **Validation**: Zod for environment validation, Joi for API validation
+- **Security**: Helmet, CORS, rate limiting, mongo-sanitize, bcrypt
+- **Testing**: Jest with MongoDB Memory Server
 - **Logging**: Winston with daily rotation
+- **File Handling**: Multer for uploads
+- **Documentation**: Swagger/OpenAPI
 
 ### Project Structure
 ```
@@ -120,37 +139,64 @@ src/
 }
 ```
 
-## Environment Variables
-Key variables (see .env.example):
-- `NODE_ENV`: development/production
-- `PORT`: Server port (default: 5000)
+## Environment Configuration
+
+Environment variables are validated using Zod schema in `src/config/env.js`. All variables are type-checked and have sensible defaults where applicable.
+
+Critical variables (no defaults):
 - `MONGODB_URI`: MongoDB connection string
-- `JWT_SECRET`: JWT signing secret
-- `JWT_REFRESH_SECRET`: Refresh token secret
-- `CORS_ORIGIN`: Allowed origins
-- `RATE_LIMIT_*`: Rate limiting config
+- `JWT_SECRET`: Must be 32+ characters
+- `JWT_REFRESH_SECRET`: Must be 32+ characters  
+- `SESSION_SECRET`: Must be 32+ characters
+
+Important variables with defaults:
+- `NODE_ENV`: development/production/test (default: development)
+- `PORT`: Server port (default: 3000)
+- `BCRYPT_SALT_ROUNDS`: Password hashing rounds (default: 12)
+- `RATE_LIMIT_MAX_REQUESTS`: Max requests per window (default: 100)
+- `CORS_ORIGIN`: Allowed origins (default: http://localhost:5000)
 
 ## Development Guidelines
 
+### BaseController Pattern
+
+All controllers extend `BaseController` which provides standard CRUD operations:
+
+```javascript
+import { BaseController } from './base.controller.js';
+import { User } from '../models/User.js';
+
+class UserController extends BaseController {
+  constructor() {
+    super(User, 'User');
+  }
+
+  // Inherit: getAll, getById, create, update, delete
+  // Override or add custom methods as needed
+}
+```
+
 ### Adding New Endpoints
-1. Create route file in `src/routes/`
-2. Create controller extending `base.controller.js`
-3. Add validation middleware
+1. Create controller extending `BaseController` in `src/controllers/`
+2. Create route file in `src/routes/` 
+3. Add Joi validation in `src/validators/`
 4. Register route in `src/routes/index.js`
 
 ### Common Patterns
 ```javascript
-// Async route handler
-router.get('/endpoint', asyncHandler(async (req, res) => {
-  const data = await Model.find();
-  apiResponse.success(res, data);
-}));
+// Standard response format (from utils/apiResponse.js)
+res.status(200).json(ApiResponse.success(data));
+res.status(201).json(ApiResponse.created(item));
+res.status(200).json(ApiResponse.updated(item));
 
-// Error handling
-throw new ApiError('Error message', 400, 'ERROR_CODE');
+// Error handling (from utils/apiError.js)  
+throw ApiError.notFound('Resource not found');
+throw ApiError.badRequest('Invalid input');
+throw ApiError.unauthorized('Token required');
 
-// Pagination
-const paginationData = pagination(page, limit, totalCount);
+// Pagination (built into BaseController)
+const options = Pagination.getOptions(req.query);
+const result = Pagination.createResult(items, total, page, limit);
 ```
 
 ### Database Operations
@@ -159,129 +205,77 @@ const paginationData = pagination(page, limit, totalCount);
 - Use transactions for multi-document updates
 - Index frequently queried fields
 
-## Current Implementation Status
+## Testing Architecture
 
-### ✅ Implemented
-- Project structure & configuration
-- Database models (User, Attorney, PracticeArea)
-- Base controller with CRUD template
-- Error handling & logging
-- Security middleware
-- Utility functions
+Uses Jest with MongoDB Memory Server for isolated testing:
 
-### ⚠️ TODO
-1. **Authentication Routes**: Login, register, refresh, logout
-2. **Entity Routes**: CRUD endpoints for all models
-3. **Auth Middleware**: JWT verification, role checking
-4. **Validation**: Request validation middleware
-5. **File Upload**: Multer configuration for media
-6. **Email Service**: SMTP integration
-7. **Swagger Docs**: Complete API documentation
-8. **Tests**: Unit and integration tests
-
-## Common Tasks
-
-### Add New Model
-1. Create schema in `src/models/`
-2. Define Mongoose schema with validation
-3. Add methods, virtuals, and hooks
-4. Export model
-
-### Add New Route
-1. Create route file in `src/routes/`
-2. Define endpoints with validation
-3. Implement controller logic
-4. Add to router in `src/routes/index.js`
-
-### Handle File Uploads
-```javascript
-// Configure multer in route
-const upload = multer({ 
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    // Validation logic
-  }
-});
-
-router.post('/upload', upload.single('file'), controller.upload);
-```
-
-### Implement Authentication
-```javascript
-// In middleware
-const authenticateToken = asyncHandler(async (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  // Verify JWT and attach user to request
-});
-
-// In routes
-router.use(authenticateToken);
-router.use(authorize(['admin', 'editor']));
-```
-
-## Debugging Tips
-- Check logs in `logs/` directory
-- Use `npm run dev` for hot reload
-- MongoDB connection issues: Check MONGODB_URI
-- CORS errors: Verify CORS_ORIGIN in .env
-- Auth errors: Check JWT secrets and expiration
-
-## Security Checklist
-- [ ] Never commit .env file
-- [ ] Use strong JWT secrets
-- [ ] Enable rate limiting in production
-- [ ] Sanitize all user inputs
-- [ ] Validate request data
-- [ ] Use HTTPS in production
-- [ ] Keep dependencies updated
-- [ ] Implement proper error messages (no stack traces)
-
-## Performance Tips
-- Index database queries
-- Use pagination for list endpoints
-- Implement caching for static data
-- Use compression middleware
-- Optimize images before storage
-- Use CDN for static assets
-
-## Deployment Checklist
-1. Set NODE_ENV=production
-2. Configure production MongoDB
-3. Set strong JWT secrets
-4. Configure CORS for production domain
-5. Enable all security middleware
-6. Set up logging and monitoring
-7. Configure reverse proxy (nginx)
-8. Set up SSL certificates
-9. Configure backup strategy
-10. Set up health monitoring
-
-## Useful Commands
 ```bash
-# Check for outdated packages
-npm outdated
+# Test structure
+tests/
+├── setup.js              # Global test setup
+├── helpers/               # Test utilities (auth, db, request helpers)
+├── unit/                  # Unit tests (models, middleware, utils)
+├── integration/           # API endpoint tests
+└── fixtures/              # Test data
 
-# Update dependencies
-npm update
-
-# Audit for vulnerabilities
-npm audit
-
-# Fix vulnerabilities
-npm audit fix
-
-# Run specific file
-node src/server.js
-
-# MongoDB shell access
-mongosh mongodb://localhost:27017/bonderud-law
+# Key test helpers
+- `auth.helper.js`: Generate JWT tokens for testing
+- `db.helper.js`: Database setup/teardown
+- `request.helper.js`: API request utilities
 ```
 
-## Contact & Support
-- Repository: [GitHub URL]
-- Documentation: See swagger docs at `/api-docs`
-- Issues: Report via GitHub issues
+Test files use `*.test.js` naming convention. Tests run with `NODE_OPTIONS=--experimental-vm-modules` for ES module support.
+
+## ES Modules & Import Patterns
+
+This project uses ES6 modules (`"type": "module"` in package.json):
+
+```javascript
+// File extensions required for local imports
+import { User } from '../models/User.js';  // ✓ Correct
+import { User } from '../models/User';     // ✗ Missing .js
+
+// Named imports from utils/index.js barrel export
+import { ApiResponse, ApiError, Pagination } from '../utils/index.js';
+
+// Environment config
+import env from '../config/env.js';
+```
+
+## Key Architecture Decisions
+
+- **Centralized Error Handling**: All errors go through `middleware/errorHandler.js`
+- **Standardized Responses**: All API responses use `ApiResponse` class
+- **Environment Validation**: Startup fails if required env vars missing/invalid
+- **Base Controller**: CRUD operations inherited, extend for custom logic  
+- **Middleware Stack**: Security-first approach with rate limiting, sanitization
+- **Bilingual Support**: Models support `en`/`es` content throughout
+
+## Debugging & Development
+
+```bash
+# Logs are in logs/ directory with daily rotation
+tail -f logs/error.log
+tail -f logs/combined.log
+
+# MongoDB shell access  
+mongosh $MONGODB_URI
+
+# Check environment validation
+node -e "import('./src/config/env.js')"
+
+# Run linting before commits
+npm run lint && npm run test
+```
+
+## Important Notes
+
+- **Environment**: Server fails to start if env validation fails
+- **File Extensions**: Required for ES module imports (`.js`)
+- **Base Controller**: Inherit from `BaseController` for standard CRUD
+- **Testing**: Use `tests/helpers/` for auth tokens, DB setup
+- **API Docs**: Available at `/api-docs` when server running
+- **Logs**: Winston with daily rotation in `logs/` directory
 
 ---
-Last Updated: January 2025
-Version: 1.0.0
+*This codebase uses ES6 modules, Zod validation, and follows RESTful conventions*

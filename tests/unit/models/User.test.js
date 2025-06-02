@@ -1,5 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import User from '../../../src/models/User.js';
+import { User } from '../../../src/models/User.js';
 import mongoose from 'mongoose';
 
 // Mock logger

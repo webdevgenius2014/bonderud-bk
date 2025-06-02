@@ -24,8 +24,7 @@ const consoleFormat = winston.format.combine(
   })
 );
 
-const createRotateFileTransport = (filename, level) => {
-  return new DailyRotateFile({
+const createRotateFileTransport = (filename, level) => new DailyRotateFile({
     filename: path.join(env.LOG_FILE_PATH, filename),
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
@@ -34,7 +33,6 @@ const createRotateFileTransport = (filename, level) => {
     level,
     format: logFormat,
   });
-};
 
 const transports = [
   createRotateFileTransport('combined-%DATE%.log'),

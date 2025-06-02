@@ -1,6 +1,6 @@
-import PracticeArea from '../../../src/models/PracticeArea.js';
-import Attorney from '../../../src/models/Attorney.js';
-import User from '../../../src/models/User.js';
+import { PracticeArea } from '../../../src/models/PracticeArea.js';
+import { Attorney } from '../../../src/models/Attorney.js';
+import { User } from '../../../src/models/User.js';
 import mongoose from 'mongoose';
 
 describe('PracticeArea Model', () => {

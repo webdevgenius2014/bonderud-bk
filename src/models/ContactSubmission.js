@@ -23,7 +23,7 @@ const contactSubmissionSchema = new Schema({
       lowercase: true,
       trim: true,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
         message: 'Please provide a valid email address'
@@ -34,8 +34,8 @@ const contactSubmissionSchema = new Schema({
       required: [true, 'Phone number is required'],
       trim: true,
       validate: {
-        validator: function(v) {
-          return /^\+?[\d\s\-\(\)]{10,}$/.test(v);
+        validator(v) {
+          return /^\+?[\d\s-()]{10,}$/.test(v);
         },
         message: 'Please provide a valid phone number'
       }
@@ -80,7 +80,7 @@ const contactSubmissionSchema = new Schema({
     date: {
       type: Date,
       validate: {
-        validator: function(v) {
+        validator(v) {
           return !v || v > new Date();
         },
         message: 'Callback date must be in the future'
@@ -117,7 +117,7 @@ const contactSubmissionSchema = new Schema({
       type: Boolean,
       required: [true, 'Terms acceptance is required'],
       validate: {
-        validator: function(v) {
+        validator(v) {
           return v === true;
         },
         message: 'Must accept terms and conditions'
@@ -373,7 +373,7 @@ contactSubmissionSchema.statics.getStatistics = async function(filter = {}) {
 };
 
 // Instance methods
-contactSubmissionSchema.methods.markAsRead = function(userId) {
+contactSubmissionSchema.methods.markAsRead = function(_userId) {
   if (this.status === 'new') {
     this.status = 'read';
   }
