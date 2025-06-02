@@ -1262,15 +1262,22 @@ components:
         profile:
           type: object
           required:
-            - firstName
-            - lastName
+            - name
           properties:
-            firstName:
-              type: string
-              maxLength: 50
-            lastName:
-              type: string
-              maxLength: 50
+            name:
+              type: object
+              required:
+                - en
+                - es
+              properties:
+                en:
+                  type: string
+                  maxLength: 100
+                  description: English name
+                es:
+                  type: string
+                  maxLength: 100
+                  description: Spanish name
             phone:
               type: string
               pattern: '^\+?[\d\s()-]+$'
@@ -1324,10 +1331,15 @@ components:
         profile:
           type: object
           properties:
-            firstName:
-              type: string
-            lastName:
-              type: string
+            name:
+              type: object
+              properties:
+                en:
+                  type: string
+                  description: English name
+                es:
+                  type: string
+                  description: Spanish name
             bio:
               type: string
             avatar:
@@ -1415,15 +1427,22 @@ components:
         profile:
           type: object
           required:
-            - firstName
-            - lastName
+            - name
           properties:
-            firstName:
-              type: string
-              maxLength: 50
-            lastName:
-              type: string
-              maxLength: 50
+            name:
+              type: object
+              required:
+                - en
+                - es
+              properties:
+                en:
+                  type: string
+                  maxLength: 100
+                  description: English name
+                es:
+                  type: string
+                  maxLength: 100
+                  description: Spanish name
             bio:
               type: string
               maxLength: 500
@@ -1454,12 +1473,17 @@ components:
         profile:
           type: object
           properties:
-            firstName:
-              type: string
-              maxLength: 50
-            lastName:
-              type: string
-              maxLength: 50
+            name:
+              type: object
+              properties:
+                en:
+                  type: string
+                  maxLength: 100
+                  description: English name
+                es:
+                  type: string
+                  maxLength: 100
+                  description: Spanish name
             bio:
               type: string
               maxLength: 500
@@ -1485,12 +1509,17 @@ components:
         profile:
           type: object
           properties:
-            firstName:
-              type: string
-              maxLength: 50
-            lastName:
-              type: string
-              maxLength: 50
+            name:
+              type: object
+              properties:
+                en:
+                  type: string
+                  maxLength: 100
+                  description: English name
+                es:
+                  type: string
+                  maxLength: 100
+                  description: Spanish name
             bio:
               type: string
               maxLength: 500

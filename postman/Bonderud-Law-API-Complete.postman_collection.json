@@ -120,7 +120,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test@123456\",\n  \"profile\": {\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1-555-0123\",\n    \"preferredLanguage\": \"en\"\n  }\n}"
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test@123456\",\n  \"profile\": {\n    \"name\": {\n      \"en\": \"Test User\",\n      \"es\": \"Usuario Prueba\"\n    },\n    \"phone\": \"+1-555-0123\",\n    \"preferredLanguage\": \"en\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
