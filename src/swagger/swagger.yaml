@@ -1087,6 +1087,655 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  # Blog Endpoints
+  /blog/categories:
+    get:
+      tags:
+        - Blog
+      summary: Get all blog categories
+      description: Retrieve hierarchical list of blog categories
+      parameters:
+        - in: query
+          name: includeChildren
+          schema:
+            type: boolean
+            default: true
+          description: Include child categories
+        - in: query
+          name: includePostCount
+          schema:
+            type: boolean
+            default: true
+          description: Include post count for each category
+      responses:
+        '200':
+          description: List of blog categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      categories:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BlogCategoryHierarchy'
+                      totalCount:
+                        type: integer
+
+    post:
+      tags:
+        - Blog
+      summary: Create new blog category
+      description: Create a new blog category. Requires admin role.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlogCategoryRequest'
+      responses:
+        '201':
+          description: Blog category created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BlogCategory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /blog/categories/{slug}:
+    get:
+      tags:
+        - Blog
+      summary: Get blog category with posts
+      description: Get specific blog category with its posts
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: Category slug
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, es]
+            default: en
+          description: Language for content
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Category with posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      category:
+                        $ref: '#/components/schemas/BlogCategory'
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BlogPost'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/categories/{id}:
+    put:
+      tags:
+        - Blog
+      summary: Update blog category
+      description: Update blog category details. Requires admin role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBlogCategoryRequest'
+      responses:
+        '200':
+          description: Blog category updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BlogCategory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Blog
+      summary: Delete blog category
+      description: Delete a blog category. Requires admin role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Blog category deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Cannot delete category with posts or subcategories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/categories/reorder:
+    post:
+      tags:
+        - Blog
+      summary: Reorder blog categories
+      description: Update display order of blog categories. Requires admin role.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - orders
+              properties:
+                orders:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - id
+                      - displayOrder
+                    properties:
+                      id:
+                        type: string
+                        pattern: '^[0-9a-fA-F]{24}$'
+                      displayOrder:
+                        type: integer
+                        minimum: 0
+      responses:
+        '200':
+          description: Categories reordered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /blog/posts:
+    get:
+      tags:
+        - Blog
+      summary: Get all blog posts
+      description: Retrieve paginated list of published blog posts
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - in: query
+          name: category
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by category ID
+        - in: query
+          name: author
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by author ID
+        - in: query
+          name: featured
+          schema:
+            type: boolean
+          description: Filter featured posts only
+        - in: query
+          name: tag
+          schema:
+            type: string
+          description: Filter by tag
+        - in: query
+          name: search
+          schema:
+            type: string
+            minLength: 2
+          description: Search in title and content
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [publishedAt, viewCount, title]
+            default: publishedAt
+          description: Field to sort by
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: List of blog posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BlogPost'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Blog
+      summary: Create new blog post
+      description: Create a new blog post. Requires editor or admin role.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlogPostRequest'
+      responses:
+        '201':
+          description: Blog post created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BlogPost'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /blog/posts/search:
+    get:
+      tags:
+        - Blog
+      summary: Search blog posts
+      description: Full-text search across blog posts
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 2
+          description: Search query
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - in: query
+          name: category
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by category ID
+        - in: query
+          name: author
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Filter by author ID
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      query:
+                        type: string
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BlogPost'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Invalid search query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /blog/posts/category/{categorySlug}:
+    get:
+      tags:
+        - Blog
+      summary: Get posts by category
+      description: Get all posts in a specific category
+      parameters:
+        - in: path
+          name: categorySlug
+          required: true
+          schema:
+            type: string
+          description: Category slug
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, es]
+            default: en
+          description: Language for content
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Posts by category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      category:
+                        $ref: '#/components/schemas/BlogCategory'
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BlogPost'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/posts/author/{authorId}:
+    get:
+      tags:
+        - Blog
+      summary: Get posts by author
+      description: Get all posts by a specific author
+      parameters:
+        - in: path
+          name: authorId
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          description: Author (Attorney) ID
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Posts by author
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      author:
+                        $ref: '#/components/schemas/Attorney'
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BlogPost'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/posts/{slug}:
+    get:
+      tags:
+        - Blog
+      summary: Get blog post by slug
+      description: Get specific blog post details
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+          description: Post slug
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [en, es]
+            default: en
+          description: Language for content
+      responses:
+        '200':
+          description: Blog post details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/BlogPost'
+                      - type: object
+                        properties:
+                          relatedPosts:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/BlogPost'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/posts/{id}:
+    put:
+      tags:
+        - Blog
+      summary: Update blog post
+      description: Update blog post details. Requires editor/admin role or being the author.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBlogPostRequest'
+      responses:
+        '200':
+          description: Blog post updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BlogPost'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Blog
+      summary: Delete blog post
+      description: Delete a blog post. Requires admin role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Blog post deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/posts/{id}/toggle-featured:
+    post:
+      tags:
+        - Blog
+      summary: Toggle post featured status
+      description: Toggle featured status of a blog post. Requires admin role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Featured status toggled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      isFeatured:
+                        type: boolean
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /blog/posts/{id}/toggle-publish:
+    post:
+      tags:
+        - Blog
+      summary: Toggle post publish status
+      description: Publish or unpublish a blog post. Requires editor/admin role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Publish status toggled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      status:
+                        type: string
+                        enum: [draft, published, archived]
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   # Reusable parameters
   parameters:
@@ -1537,14 +2186,8 @@ components:
       properties:
         _id:
           type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        middleName:
-          type: string
-        suffix:
-          type: string
+        name:
+          $ref: '#/components/schemas/BilingualContent'
         barNumber:
           type: string
         title:
@@ -1555,17 +2198,21 @@ components:
           $ref: '#/components/schemas/BilingualContent'
         specialties:
           $ref: '#/components/schemas/BilingualContent'
-        email:
-          type: string
-          format: email
-        phone:
-          type: string
-        extension:
-          type: string
-        directLine:
-          type: string
-        fax:
-          type: string
+        contact:
+          type: object
+          required:
+            - email
+            - phone
+          properties:
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            officePhone:
+              type: string
+            extension:
+              type: string
         education:
           type: array
           items:
@@ -1837,32 +2484,15 @@ components:
     CreateAttorneyRequest:
       type: object
       required:
-        - firstName
-        - lastName
-        - email
-        - phone
+        - name
+        - contact
         - title
         - bio
         - shortBio
-        - specialties
         - practiceAreas
-        - joiningDate
-        - metaTitle
-        - metaDescription
-        - availability
       properties:
-        firstName:
-          type: string
-          maxLength: 50
-        lastName:
-          type: string
-          maxLength: 50
-        middleName:
-          type: string
-          maxLength: 50
-        suffix:
-          type: string
-          maxLength: 10
+        name:
+          $ref: '#/components/schemas/BilingualContent'
         barNumber:
           type: string
         title:
@@ -1873,17 +2503,21 @@ components:
           $ref: '#/components/schemas/BilingualContent'
         specialties:
           $ref: '#/components/schemas/BilingualContent'
-        email:
-          type: string
-          format: email
-        phone:
-          type: string
-        extension:
-          type: string
-        directLine:
-          type: string
-        fax:
-          type: string
+        contact:
+          type: object
+          required:
+            - email
+            - phone
+          properties:
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            officePhone:
+              type: string
+            extension:
+              type: string
         education:
           type: array
           items:
@@ -1962,17 +2596,21 @@ components:
           $ref: '#/components/schemas/BilingualContent'
         specialties:
           $ref: '#/components/schemas/BilingualContent'
-        email:
-          type: string
-          format: email
-        phone:
-          type: string
-        extension:
-          type: string
-        directLine:
-          type: string
-        fax:
-          type: string
+        contact:
+          type: object
+          required:
+            - email
+            - phone
+          properties:
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            officePhone:
+              type: string
+            extension:
+              type: string
         education:
           type: array
           items:
@@ -2347,6 +2985,480 @@ components:
           items:
             $ref: '#/components/schemas/PracticeAreaHierarchy'
 
+    # Blog schemas
+    BlogCategory:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          $ref: '#/components/schemas/BilingualContent'
+        slug:
+          $ref: '#/components/schemas/BilingualContent'
+        description:
+          $ref: '#/components/schemas/BilingualContent'
+        parent:
+          type: string
+          description: Parent category ID
+        displayOrder:
+          type: integer
+          default: 0
+        isActive:
+          type: boolean
+          default: true
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+        postCount:
+          type: integer
+          description: Number of posts in this category
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogCategory'
+          description: Child categories
+        isDeleted:
+          type: boolean
+          default: false
+        createdBy:
+          type: string
+          description: User ID who created the category
+        updatedBy:
+          type: string
+          description: User ID who last updated the category
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BlogCategoryHierarchy:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          $ref: '#/components/schemas/BilingualContent'
+        slug:
+          $ref: '#/components/schemas/BilingualContent'
+        description:
+          $ref: '#/components/schemas/BilingualContent'
+        displayOrder:
+          type: integer
+        isActive:
+          type: boolean
+        postCount:
+          type: integer
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogCategoryHierarchy'
+
+    BlogPost:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        slug:
+          $ref: '#/components/schemas/BilingualContent'
+        content:
+          $ref: '#/components/schemas/BilingualContent'
+        excerpt:
+          $ref: '#/components/schemas/BilingualContent'
+        author:
+          $ref: '#/components/schemas/Attorney'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogCategory'
+        status:
+          type: string
+          enum: [draft, published, archived]
+          default: draft
+        publishedAt:
+          type: string
+          format: date-time
+        featuredImage:
+          type: object
+          properties:
+            url:
+              type: string
+              format: uri
+            alt:
+              $ref: '#/components/schemas/BilingualContent'
+            caption:
+              $ref: '#/components/schemas/BilingualContent'
+        gallery:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                format: uri
+              alt:
+                $ref: '#/components/schemas/BilingualContent'
+              caption:
+                $ref: '#/components/schemas/BilingualContent'
+              order:
+                type: integer
+                default: 0
+        tags:
+          type: object
+          properties:
+            en:
+              type: array
+              items:
+                type: string
+            es:
+              type: array
+              items:
+                type: string
+        relatedPosts:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogPost'
+          maxItems: 5
+        viewCount:
+          type: integer
+          default: 0
+          minimum: 0
+        readingTime:
+          type: object
+          properties:
+            en:
+              type: integer
+              minimum: 1
+            es:
+              type: integer
+              minimum: 1
+        allowComments:
+          type: boolean
+          default: true
+        isFeatured:
+          type: boolean
+          default: false
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            canonicalUrl:
+              type: string
+              format: uri
+            ogImage:
+              type: string
+              format: uri
+        scheduledFor:
+          type: string
+          format: date-time
+          description: Scheduled publish date
+        isDeleted:
+          type: boolean
+          default: false
+        createdBy:
+          type: string
+          description: User ID who created the post
+        updatedBy:
+          type: string
+          description: User ID who last updated the post
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        formattedDate:
+          type: string
+          description: Formatted publish date (virtual field)
+
+    CreateBlogCategoryRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          $ref: '#/components/schemas/BilingualContent'
+        slug:
+          $ref: '#/components/schemas/BilingualContent'
+        description:
+          $ref: '#/components/schemas/BilingualContent'
+        parent:
+          type: string
+          pattern: '^[0-9a-fA-F]{24}$'
+          description: Parent category ID
+        displayOrder:
+          type: integer
+          minimum: 0
+          default: 0
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+      example:
+        name:
+          en: "Criminal Defense"
+          es: "Defensa Penal"
+        slug:
+          en: "criminal-defense"
+          es: "defensa-penal"
+        description:
+          en: "Expert criminal defense representation"
+          es: "Representación experta en defensa penal"
+        displayOrder: 1
+        seo:
+          metaTitle:
+            en: "Criminal Defense Lawyers | Bonderud Law"
+            es: "Abogados de Defensa Penal | Bonderud Law"
+          metaDescription:
+            en: "Experienced criminal defense attorneys in Miami"
+            es: "Abogados experimentados en defensa penal en Miami"
+
+    UpdateBlogCategoryRequest:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/BilingualContent'
+        slug:
+          $ref: '#/components/schemas/BilingualContent'
+        description:
+          $ref: '#/components/schemas/BilingualContent'
+        parent:
+          type: string
+          pattern: '^[0-9a-fA-F]{24}$'
+          description: Parent category ID
+        displayOrder:
+          type: integer
+          minimum: 0
+        isActive:
+          type: boolean
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+      minProperties: 1
+
+    CreateBlogPostRequest:
+      type: object
+      required:
+        - title
+        - content
+        - author
+        - categories
+      properties:
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        slug:
+          $ref: '#/components/schemas/BilingualContent'
+        content:
+          $ref: '#/components/schemas/BilingualContent'
+        excerpt:
+          $ref: '#/components/schemas/BilingualContent'
+        author:
+          type: string
+          pattern: '^[0-9a-fA-F]{24}$'
+          description: Attorney ID who is the author
+        categories:
+          type: array
+          items:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          minItems: 1
+          description: Array of category IDs
+        status:
+          type: string
+          enum: [draft, published, archived]
+          default: draft
+        featuredImage:
+          type: object
+          properties:
+            url:
+              type: string
+              format: uri
+            alt:
+              $ref: '#/components/schemas/BilingualContent'
+            caption:
+              $ref: '#/components/schemas/BilingualContent'
+        gallery:
+          type: array
+          items:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+                format: uri
+              alt:
+                $ref: '#/components/schemas/BilingualContent'
+              caption:
+                $ref: '#/components/schemas/BilingualContent'
+              order:
+                type: integer
+                minimum: 0
+                default: 0
+        tags:
+          type: object
+          properties:
+            en:
+              type: array
+              items:
+                type: string
+            es:
+              type: array
+              items:
+                type: string
+        allowComments:
+          type: boolean
+          default: true
+        isFeatured:
+          type: boolean
+          default: false
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            canonicalUrl:
+              type: string
+              format: uri
+            ogImage:
+              type: string
+              format: uri
+        scheduledFor:
+          type: string
+          format: date-time
+          description: Schedule post for future publication
+      example:
+        title:
+          en: "Understanding Your Rights During a DUI Stop"
+          es: "Entendiendo Sus Derechos Durante una Parada de DUI"
+        content:
+          en: "<p>Being stopped for suspected DUI can be intimidating...</p>"
+          es: "<p>Ser detenido por sospecha de DUI puede ser intimidante...</p>"
+        excerpt:
+          en: "Learn about your constitutional rights during a DUI stop"
+          es: "Aprenda sobre sus derechos constitucionales durante una parada de DUI"
+        author: "507f1f77bcf86cd799439011"
+        categories: ["507f1f77bcf86cd799439012"]
+        status: "draft"
+        tags:
+          en: ["dui", "rights", "criminal defense"]
+          es: ["dui", "derechos", "defensa penal"]
+        isFeatured: false
+        allowComments: true
+
+    UpdateBlogPostRequest:
+      type: object
+      properties:
+        title:
+          $ref: '#/components/schemas/BilingualContent'
+        slug:
+          $ref: '#/components/schemas/BilingualContent'
+        content:
+          $ref: '#/components/schemas/BilingualContent'
+        excerpt:
+          $ref: '#/components/schemas/BilingualContent'
+        author:
+          type: string
+          pattern: '^[0-9a-fA-F]{24}$'
+          description: Attorney ID who is the author
+        categories:
+          type: array
+          items:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          minItems: 1
+          description: Array of category IDs
+        status:
+          type: string
+          enum: [draft, published, archived]
+        featuredImage:
+          type: object
+          properties:
+            url:
+              type: string
+              format: uri
+            alt:
+              $ref: '#/components/schemas/BilingualContent'
+            caption:
+              $ref: '#/components/schemas/BilingualContent'
+        gallery:
+          type: array
+          items:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+                format: uri
+              alt:
+                $ref: '#/components/schemas/BilingualContent'
+              caption:
+                $ref: '#/components/schemas/BilingualContent'
+              order:
+                type: integer
+                minimum: 0
+                default: 0
+        tags:
+          type: object
+          properties:
+            en:
+              type: array
+              items:
+                type: string
+            es:
+              type: array
+              items:
+                type: string
+        allowComments:
+          type: boolean
+        isFeatured:
+          type: boolean
+        seo:
+          type: object
+          properties:
+            metaTitle:
+              $ref: '#/components/schemas/BilingualContent'
+            metaDescription:
+              $ref: '#/components/schemas/BilingualContent'
+            canonicalUrl:
+              type: string
+              format: uri
+            ogImage:
+              type: string
+              format: uri
+        scheduledFor:
+          type: string
+          format: date-time
+          description: Schedule post for future publication
+        relatedPosts:
+          type: array
+          items:
+            type: string
+            pattern: '^[0-9a-fA-F]{24}$'
+          maxItems: 5
+          description: Array of related post IDs
+      minProperties: 1
+
   # Reusable responses
   responses:
     BadRequest:
@@ -2426,3 +3538,5 @@ tags:
     description: Attorney profile management
   - name: Practice Areas
     description: Practice area management
+  - name: Blog
+    description: Blog categories and posts management

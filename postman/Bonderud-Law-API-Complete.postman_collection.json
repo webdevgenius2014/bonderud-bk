@@ -433,7 +433,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"TempPassword@123\",\n  \"role\": \"editor\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Doe\",\n    \"bio\": \"Legal assistant with 5 years experience\",\n    \"phone\": \"+1-555-0456\",\n    \"department\": \"Legal\",\n    \"title\": \"Senior Legal Assistant\",\n    \"preferredLanguage\": \"en\"\n  },\n  \"permissions\": {\n    \"canManageAttorneys\": true,\n    \"canManagePracticeAreas\": true\n  }\n}"
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"TempPassword@123\",\n  \"role\": \"editor\",\n  \"profile\": {\n    \"name\": {\n      \"en\": \"Jane Doe\",\n      \"es\": \"Juana Doe\"\n    },\n    \"bio\": \"Legal assistant with 5 years experience\",\n    \"phone\": \"+1-555-0456\",\n    \"department\": \"Legal\",\n    \"title\": \"Senior Legal Assistant\",\n    \"preferredLanguage\": \"en\"\n  },\n  \"permissions\": {\n    \"canManageAttorneys\": true,\n    \"canManagePracticeAreas\": true\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users",
@@ -479,7 +479,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"profile\": {\n    \"firstName\": \"Updated\",\n    \"lastName\": \"Name\",\n    \"bio\": \"Updated bio information\",\n    \"phone\": \"+1-555-9999\",\n    \"preferredLanguage\": \"es\",\n    \"timezone\": \"America/New_York\"\n  }\n}"
+              "raw": "{\n  \"profile\": {\n    \"name\": {\n      \"en\": \"Updated Name\",\n      \"es\": \"Nombre Actualizado\"\n    },\n    \"bio\": \"Updated bio information\",\n    \"phone\": \"+1-555-9999\",\n    \"preferredLanguage\": \"es\",\n    \"timezone\": \"America/New_York\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/users/me",
@@ -737,7 +737,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Maria\",\n  \"lastName\": \"Rodriguez\",\n  \"middleName\": \"Elena\",\n  \"suffix\": \"Esq.\",\n  \"barNumber\": \"FL123456\",\n  \"title\": {\n    \"en\": \"Senior Partner\",\n    \"es\": \"Socio Principal\"\n  },\n  \"bio\": {\n    \"en\": \"Experienced criminal defense attorney with over 15 years of practice. Specializes in DUI, drug offenses, and white-collar crimes.\",\n    \"es\": \"Abogada experimentada en defensa penal con más de 15 años de práctica. Se especializa en DUI, delitos de drogas y delitos de cuello blanco.\"\n  },\n  \"shortBio\": {\n    \"en\": \"15+ years criminal defense specialist\",\n    \"es\": \"Especialista en defensa penal con más de 15 años\"\n  },\n  \"specialties\": {\n    \"en\": \"Criminal Defense, DUI, Drug Offenses, White-Collar Crimes\",\n    \"es\": \"Defensa Penal, DUI, Delitos de Drogas, Delitos de Cuello Blanco\"\n  },\n  \"email\": \"maria.rodriguez@bonderudlaw.com\",\n  \"phone\": \"+1-305-555-0123\",\n  \"extension\": \"101\",\n  \"directLine\": \"+1-305-555-0124\",\n  \"fax\": \"+1-305-555-0125\",\n  \"education\": [\n    {\n      \"institution\": {\n        \"en\": \"University of Miami School of Law\",\n        \"es\": \"Escuela de Derecho de la Universidad de Miami\"\n      },\n      \"degree\": {\n        \"en\": \"Juris Doctor\",\n        \"es\": \"Doctor en Jurisprudencia\"\n      },\n      \"fieldOfStudy\": {\n        \"en\": \"Criminal Law\",\n        \"es\": \"Derecho Penal\"\n      },\n      \"graduationYear\": 2008,\n      \"honors\": {\n        \"en\": \"Magna Cum Laude\",\n        \"es\": \"Magna Cum Laude\"\n      },\n      \"description\": {\n        \"en\": \"Graduated top 10% of class\",\n        \"es\": \"Graduado en el 10% superior de la clase\"\n      },\n      \"isHighlighted\": true\n    }\n  ],\n  \"experience\": [\n    {\n      \"position\": {\n        \"en\": \"Senior Partner\",\n        \"es\": \"Socio Principal\"\n      },\n      \"company\": {\n        \"en\": \"Bonderud Law Firm\",\n        \"es\": \"Bufete Bonderud\"\n      },\n      \"location\": {\n        \"en\": \"Miami, FL\",\n        \"es\": \"Miami, FL\"\n      },\n      \"startDate\": \"2015-01-01\",\n      \"description\": {\n        \"en\": \"Leading criminal defense practice with focus on complex cases\",\n        \"es\": \"Dirigiendo práctica de defensa penal con enfoque en casos complejos\"\n      },\n      \"achievements\": {\n        \"en\": \"Successfully defended over 500 criminal cases with 95% success rate\",\n        \"es\": \"Defendió exitosamente más de 500 casos penales con 95% de éxito\"\n      },\n      \"isCurrentPosition\": true,\n      \"isHighlighted\": true\n    }\n  ],\n  \"certifications\": [\n    {\n      \"name\": {\n        \"en\": \"Board Certified Criminal Trial Lawyer\",\n        \"es\": \"Abogado Certificado en Juicios Penales\"\n      },\n      \"issuingOrganization\": {\n        \"en\": \"Florida Bar Association\",\n        \"es\": \"Colegio de Abogados de Florida\"\n      },\n      \"issueDate\": \"2012-06-01\",\n      \"expirationDate\": \"2025-06-01\",\n      \"credentialId\": \"FL-CCL-2012-001\",\n      \"credentialUrl\": \"https://www.floridabar.org/verify/FL-CCL-2012-001\",\n      \"description\": {\n        \"en\": \"Specialized certification in criminal trial advocacy\",\n        \"es\": \"Certificación especializada en defensa de juicios penales\"\n      }\n    }\n  ],\n  \"awards\": [\n    {\n      \"title\": {\n        \"en\": \"Top Criminal Defense Attorney\",\n        \"es\": \"Mejor Abogado de Defensa Penal\"\n      },\n      \"organization\": {\n        \"en\": \"Miami Legal Awards\",\n        \"es\": \"Premios Legales de Miami\"\n      },\n      \"year\": 2023,\n      \"description\": {\n        \"en\": \"Recognized for outstanding criminal defense work\",\n        \"es\": \"Reconocida por trabajo excepcional en defensa penal\"\n      },\n      \"category\": {\n        \"en\": \"Excellence in Criminal Defense\",\n        \"es\": \"Excelencia en Defensa Penal\"\n      }\n    }\n  ],\n  \"memberships\": [\n    {\n      \"organization\": {\n        \"en\": \"Florida Association of Criminal Defense Lawyers\",\n        \"es\": \"Asociación de Abogados de Defensa Penal de Florida\"\n      },\n      \"position\": {\n        \"en\": \"Board Member\",\n        \"es\": \"Miembro de la Junta\"\n      },\n      \"startDate\": \"2015-01-01\",\n      \"description\": {\n        \"en\": \"Active member serving on the ethics committee\",\n        \"es\": \"Miembro activo sirviendo en el comité de ética\"\n      },\n      \"isActive\": true\n    }\n  ],\n  \"languages\": [\n    {\n      \"language\": {\n        \"en\": \"English\",\n        \"es\": \"Inglés\"\n      },\n      \"proficiency\": \"native\",\n      \"isCertified\": false\n    },\n    {\n      \"language\": {\n        \"en\": \"Spanish\",\n        \"es\": \"Español\"\n      },\n      \"proficiency\": \"fluent\",\n      \"isCertified\": true,\n      \"certificationDetails\": {\n        \"en\": \"Certified Legal Interpreter\",\n        \"es\": \"Intérprete Legal Certificado\"\n      }\n    }\n  ],\n  \"practiceAreas\": [\"practice-area-id-1\", \"practice-area-id-2\"],\n  \"primaryPracticeArea\": \"practice-area-id-1\",\n  \"availability\": {\n    \"isAcceptingNewClients\": true,\n    \"preferredContactMethod\": \"phone\",\n    \"responseTimeExpectation\": {\n      \"en\": \"Within 2 hours during business hours\",\n      \"es\": \"Dentro de 2 horas durante horario comercial\"\n    },\n    \"consultationTypes\": [\"in_person\", \"phone\", \"video\"],\n    \"availableHours\": {\n      \"timezone\": \"America/New_York\",\n      \"schedule\": [\n        {\n          \"day\": \"monday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"tuesday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"wednesday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"thursday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"friday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"16:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"saturday\",\n          \"isAvailable\": false\n        },\n        {\n          \"day\": \"sunday\",\n          \"isAvailable\": false\n        }\n      ]\n    }\n  },\n  \"socialProfiles\": [\n    {\n      \"platform\": \"linkedin\",\n      \"url\": \"https://linkedin.com/in/maria-rodriguez-attorney\",\n      \"username\": \"maria-rodriguez-attorney\",\n      \"isPublic\": true\n    },\n    {\n      \"platform\": \"twitter\",\n      \"url\": \"https://twitter.com/MariaRodriguezEsq\",\n      \"username\": \"MariaRodriguezEsq\",\n      \"isPublic\": true\n    }\n  ],\n  \"personalWebsite\": \"https://www.mariadefenselaw.com\",\n  \"joiningDate\": \"2015-01-01\",\n  \"isPartner\": true,\n  \"isFeatured\": true,\n  \"displayOrder\": 1,\n  \"metaTitle\": {\n    \"en\": \"Maria Rodriguez - Criminal Defense Attorney | Bonderud Law\",\n    \"es\": \"Maria Rodriguez - Abogada de Defensa Penal | Bonderud Law\"\n  },\n  \"metaDescription\": {\n    \"en\": \"Experienced criminal defense attorney in Miami. 15+ years defending DUI, drug offenses, and white-collar crimes. Free consultation.\",\n    \"es\": \"Abogada experimentada en defensa penal en Miami. Más de 15 años defendiendo DUI, delitos de drogas y delitos de cuello blanco. Consulta gratuita.\"\n  }\n}"
+              "raw": "{\n  \"name\": {\n    \"en\": \"Maria Elena Rodriguez\",\n    \"es\": \"María Elena Rodríguez\"\n  },\n  \"barNumber\": \"FL123456\",\n  \"title\": {\n    \"en\": \"Senior Partner\",\n    \"es\": \"Socio Principal\"\n  },\n  \"bio\": {\n    \"en\": \"Experienced criminal defense attorney with over 15 years of practice. Specializes in DUI, drug offenses, and white-collar crimes.\",\n    \"es\": \"Abogada experimentada en defensa penal con más de 15 años de práctica. Se especializa en DUI, delitos de drogas y delitos de cuello blanco.\"\n  },\n  \"shortBio\": {\n    \"en\": \"15+ years criminal defense specialist\",\n    \"es\": \"Especialista en defensa penal con más de 15 años\"\n  },\n  \"specialties\": {\n    \"en\": \"Criminal Defense, DUI, Drug Offenses, White-Collar Crimes\",\n    \"es\": \"Defensa Penal, DUI, Delitos de Drogas, Delitos de Cuello Blanco\"\n  },\n  \"contact\": {\n    \"email\": \"maria.rodriguez@bonderudlaw.com\",\n    \"phone\": \"+1-305-555-0123\",\n    \"extension\": \"101\",\n    \"officePhone\": \"+1-305-555-0124\"\n  },\n  \"education\": [\n    {\n      \"institution\": {\n        \"en\": \"University of Miami School of Law\",\n        \"es\": \"Escuela de Derecho de la Universidad de Miami\"\n      },\n      \"degree\": {\n        \"en\": \"Juris Doctor\",\n        \"es\": \"Doctor en Jurisprudencia\"\n      },\n      \"fieldOfStudy\": {\n        \"en\": \"Criminal Law\",\n        \"es\": \"Derecho Penal\"\n      },\n      \"graduationYear\": 2008,\n      \"honors\": {\n        \"en\": \"Magna Cum Laude\",\n        \"es\": \"Magna Cum Laude\"\n      },\n      \"description\": {\n        \"en\": \"Graduated top 10% of class\",\n        \"es\": \"Graduado en el 10% superior de la clase\"\n      },\n      \"isHighlighted\": true\n    }\n  ],\n  \"experience\": [\n    {\n      \"position\": {\n        \"en\": \"Senior Partner\",\n        \"es\": \"Socio Principal\"\n      },\n      \"company\": {\n        \"en\": \"Bonderud Law Firm\",\n        \"es\": \"Bufete Bonderud\"\n      },\n      \"location\": {\n        \"en\": \"Miami, FL\",\n        \"es\": \"Miami, FL\"\n      },\n      \"startDate\": \"2015-01-01\",\n      \"description\": {\n        \"en\": \"Leading criminal defense practice with focus on complex cases\",\n        \"es\": \"Dirigiendo práctica de defensa penal con enfoque en casos complejos\"\n      },\n      \"achievements\": {\n        \"en\": \"Successfully defended over 500 criminal cases with 95% success rate\",\n        \"es\": \"Defendió exitosamente más de 500 casos penales con 95% de éxito\"\n      },\n      \"isCurrentPosition\": true,\n      \"isHighlighted\": true\n    }\n  ],\n  \"certifications\": [\n    {\n      \"name\": {\n        \"en\": \"Board Certified Criminal Trial Lawyer\",\n        \"es\": \"Abogado Certificado en Juicios Penales\"\n      },\n      \"issuingOrganization\": {\n        \"en\": \"Florida Bar Association\",\n        \"es\": \"Colegio de Abogados de Florida\"\n      },\n      \"issueDate\": \"2012-06-01\",\n      \"expirationDate\": \"2025-06-01\",\n      \"credentialId\": \"FL-CCL-2012-001\",\n      \"credentialUrl\": \"https://www.floridabar.org/verify/FL-CCL-2012-001\",\n      \"description\": {\n        \"en\": \"Specialized certification in criminal trial advocacy\",\n        \"es\": \"Certificación especializada en defensa de juicios penales\"\n      }\n    }\n  ],\n  \"awards\": [\n    {\n      \"title\": {\n        \"en\": \"Top Criminal Defense Attorney\",\n        \"es\": \"Mejor Abogado de Defensa Penal\"\n      },\n      \"organization\": {\n        \"en\": \"Miami Legal Awards\",\n        \"es\": \"Premios Legales de Miami\"\n      },\n      \"year\": 2023,\n      \"description\": {\n        \"en\": \"Recognized for outstanding criminal defense work\",\n        \"es\": \"Reconocida por trabajo excepcional en defensa penal\"\n      },\n      \"category\": {\n        \"en\": \"Excellence in Criminal Defense\",\n        \"es\": \"Excelencia en Defensa Penal\"\n      }\n    }\n  ],\n  \"memberships\": [\n    {\n      \"organization\": {\n        \"en\": \"Florida Association of Criminal Defense Lawyers\",\n        \"es\": \"Asociación de Abogados de Defensa Penal de Florida\"\n      },\n      \"position\": {\n        \"en\": \"Board Member\",\n        \"es\": \"Miembro de la Junta\"\n      },\n      \"startDate\": \"2015-01-01\",\n      \"description\": {\n        \"en\": \"Active member serving on the ethics committee\",\n        \"es\": \"Miembro activo sirviendo en el comité de ética\"\n      },\n      \"isActive\": true\n    }\n  ],\n  \"languages\": [\n    {\n      \"language\": {\n        \"en\": \"English\",\n        \"es\": \"Inglés\"\n      },\n      \"proficiency\": \"native\",\n      \"isCertified\": false\n    },\n    {\n      \"language\": {\n        \"en\": \"Spanish\",\n        \"es\": \"Español\"\n      },\n      \"proficiency\": \"fluent\",\n      \"isCertified\": true,\n      \"certificationDetails\": {\n        \"en\": \"Certified Legal Interpreter\",\n        \"es\": \"Intérprete Legal Certificado\"\n      }\n    }\n  ],\n  \"practiceAreas\": [\"practice-area-id-1\", \"practice-area-id-2\"],\n  \"primaryPracticeArea\": \"practice-area-id-1\",\n  \"availability\": {\n    \"isAcceptingNewClients\": true,\n    \"preferredContactMethod\": \"phone\",\n    \"responseTimeExpectation\": {\n      \"en\": \"Within 2 hours during business hours\",\n      \"es\": \"Dentro de 2 horas durante horario comercial\"\n    },\n    \"consultationTypes\": [\"in_person\", \"phone\", \"video\"],\n    \"availableHours\": {\n      \"timezone\": \"America/New_York\",\n      \"schedule\": [\n        {\n          \"day\": \"monday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"tuesday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"wednesday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"thursday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"friday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"16:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"saturday\",\n          \"isAvailable\": false\n        },\n        {\n          \"day\": \"sunday\",\n          \"isAvailable\": false\n        }\n      ]\n    }\n  },\n  \"socialProfiles\": [\n    {\n      \"platform\": \"linkedin\",\n      \"url\": \"https://linkedin.com/in/maria-rodriguez-attorney\",\n      \"username\": \"maria-rodriguez-attorney\",\n      \"isPublic\": true\n    },\n    {\n      \"platform\": \"twitter\",\n      \"url\": \"https://twitter.com/MariaRodriguezEsq\",\n      \"username\": \"MariaRodriguezEsq\",\n      \"isPublic\": true\n    }\n  ],\n  \"personalWebsite\": \"https://www.mariadefenselaw.com\",\n  \"joiningDate\": \"2015-01-01\",\n  \"isPartner\": true,\n  \"isFeatured\": true,\n  \"displayOrder\": 1,\n  \"metaTitle\": {\n    \"en\": \"Maria Rodriguez - Criminal Defense Attorney | Bonderud Law\",\n    \"es\": \"Maria Rodriguez - Abogada de Defensa Penal | Bonderud Law\"\n  },\n  \"metaDescription\": {\n    \"en\": \"Experienced criminal defense attorney in Miami. 15+ years defending DUI, drug offenses, and white-collar crimes. Free consultation.\",\n    \"es\": \"Abogada experimentada en defensa penal en Miami. Más de 15 años defendiendo DUI, delitos de drogas y delitos de cuello blanco. Consulta gratuita.\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/attorneys",
@@ -1058,6 +1058,361 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Blog",
+      "description": "Blog categories and posts management",
+      "item": [
+        {
+          "name": "Get All Blog Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains categories', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('categories');",
+                  "});",
+                  "",
+                  "if (pm.response.json().data.categories.length > 0) {",
+                  "    pm.collectionVariables.set('blogCategoryId', pm.response.json().data.categories[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blog/categories?includeChildren=true&includePostCount=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "categories"],
+              "query": [
+                {
+                  "key": "includeChildren",
+                  "value": "true"
+                },
+                {
+                  "key": "includePostCount",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Get hierarchical list of blog categories"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Blog Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"name\\\": {\\n    \\\"en\\\": \\\"Criminal Defense\\\",\\n    \\\"es\\\": \\\"Defensa Penal\\\"\\n  },\\n  \\\"slug\\\": {\\n    \\\"en\\\": \\\"criminal-defense\\\",\\n    \\\"es\\\": \\\"defensa-penal\\\"\\n  },\\n  \\\"description\\\": {\\n    \\\"en\\\": \\\"Expert criminal defense representation and legal advice\\\",\\n    \\\"es\\\": \\\"Representación experta en defensa penal y asesoría legal\\\"\\n  },\\n  \\\"displayOrder\\\": 1,\\n  \\\"seo\\\": {\\n    \\\"metaTitle\\\": {\\n      \\\"en\\\": \\\"Criminal Defense Blog | Bonderud Law\\\",\\n      \\\"es\\\": \\\"Blog de Defensa Penal | Bonderud Law\\\"\\n    },\\n    \\\"metaDescription\\\": {\\n      \\\"en\\\": \\\"Read expert insights on criminal defense law\\\",\\n      \\\"es\\\": \\\"Lea perspectivas expertas sobre derecho de defensa penal\\\"\\n    }\\n  }\\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blog/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "categories"]
+            },
+            "description": "Create a new blog category. Requires admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Blog Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains posts', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('posts');",
+                  "});",
+                  "",
+                  "if (pm.response.json().data.posts.length > 0) {",
+                  "    pm.collectionVariables.set('blogPostId', pm.response.json().data.posts[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts?page=1&limit=10&sortBy=publishedAt&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "category",
+                  "value": "{{blogCategoryId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "author",
+                  "value": "{{attorneyId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "featured",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "defense",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "publishedAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "Get paginated list of published blog posts"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Blog Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/search?q=criminal defense&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "criminal defense"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "category",
+                  "value": "{{blogCategoryId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "author",
+                  "value": "{{attorneyId}}",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Search blog posts by content"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Blog Post by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/understanding-your-rights-during-dui-stop?language=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts", "understanding-your-rights-during-dui-stop"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "Get specific blog post by slug"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Blog Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"title\\\": {\\n    \\\"en\\\": \\\"Understanding Your Rights During a DUI Stop\\\",\\n    \\\"es\\\": \\\"Entendiendo Sus Derechos Durante una Parada de DUI\\\"\\n  },\\n  \\\"slug\\\": {\\n    \\\"en\\\": \\\"understanding-your-rights-during-dui-stop\\\",\\n    \\\"es\\\": \\\"entendiendo-sus-derechos-durante-parada-dui\\\"\\n  },\\n  \\\"content\\\": {\\n    \\\"en\\\": \\\"<p>Being stopped for suspected DUI can be intimidating, but knowing your rights can make all the difference. Here's what you need to know...</p>\\\\n<h2>Your Constitutional Rights</h2>\\\\n<p>The Fourth Amendment protects you from unreasonable searches and seizures...</p>\\\",\\n    \\\"es\\\": \\\"<p>Ser detenido por sospecha de DUI puede ser intimidante, pero conocer sus derechos puede marcar la diferencia. Esto es lo que necesita saber...</p>\\\\n<h2>Sus Derechos Constitucionales</h2>\\\\n<p>La Cuarta Enmienda lo protege de registros e incautaciones irrazonables...</p>\\\"\\n  },\\n  \\\"excerpt\\\": {\\n    \\\"en\\\": \\\"Learn about your constitutional rights during a DUI stop and how to protect yourself legally.\\\",\\n    \\\"es\\\": \\\"Aprenda sobre sus derechos constitucionales durante una parada de DUI y cómo protegerse legalmente.\\\"\\n  },\\n  \\\"author\\\": \\\"{{attorneyId}}\\\",\\n  \\\"categories\\\": [\\\"{{blogCategoryId}}\\\"],\\n  \\\"status\\\": \\\"draft\\\",\\n  \\\"featuredImage\\\": {\\n    \\\"url\\\": \\\"https://example.com/dui-stop-rights.jpg\\\",\\n    \\\"alt\\\": {\\n      \\\"en\\\": \\\"Police officer conducting a DUI stop\\\",\\n      \\\"es\\\": \\\"Oficial de policía realizando una parada de DUI\\\"\\n    },\\n    \\\"caption\\\": {\\n      \\\"en\\\": \\\"Know your rights during a DUI stop\\\",\\n      \\\"es\\\": \\\"Conozca sus derechos durante una parada de DUI\\\"\\n    }\\n  },\\n  \\\"tags\\\": {\\n    \\\"en\\\": [\\\"dui\\\", \\\"rights\\\", \\\"criminal defense\\\", \\\"legal advice\\\"],\\n    \\\"es\\\": [\\\"dui\\\", \\\"derechos\\\", \\\"defensa penal\\\", \\\"asesoría legal\\\"]\\n  },\\n  \\\"isFeatured\\\": false,\\n  \\\"allowComments\\\": true,\\n  \\\"seo\\\": {\\n    \\\"metaTitle\\\": {\\n      \\\"en\\\": \\\"Your Rights During a DUI Stop | Bonderud Law\\\",\\n      \\\"es\\\": \\\"Sus Derechos Durante una Parada de DUI | Bonderud Law\\\"\\n    },\\n    \\\"metaDescription\\\": {\\n      \\\"en\\\": \\\"Protect yourself during a DUI stop. Learn your constitutional rights from experienced criminal defense attorneys.\\\",\\n      \\\"es\\\": \\\"Protéjase durante una parada de DUI. Aprenda sus derechos constitucionales de abogados experimentados en defensa penal.\\\"\\n    }\\n  }\\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts"]
+            },
+            "description": "Create a new blog post. Requires editor or admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Blog Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"status\\\": \\\"published\\\",\\n  \\\"isFeatured\\\": true,\\n  \\\"excerpt\\\": {\\n    \\\"en\\\": \\\"Updated excerpt: Learn about your constitutional rights during a DUI stop and how to protect yourself legally.\\\",\\n    \\\"es\\\": \\\"Extracto actualizado: Aprenda sobre sus derechos constitucionales durante una parada de DUI y cómo protegerse legalmente.\\\"\\n  }\\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/{{blogPostId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts", "{{blogPostId}}"]
+            },
+            "description": "Update blog post. Requires editor/admin role or being the author."
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Post Featured Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/{{blogPostId}}/toggle-featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts", "{{blogPostId}}", "toggle-featured"]
+            },
+            "description": "Toggle featured status of a blog post. Requires admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Post Publish Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/{{blogPostId}}/toggle-publish",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts", "{{blogPostId}}", "toggle-publish"]
+            },
+            "description": "Publish or unpublish a blog post. Requires editor/admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Posts by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/category/criminal-defense?language=en&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts", "category", "criminal-defense"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "en"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all posts in a specific category"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Posts by Author",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blog/posts/author/{{attorneyId}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["blog", "posts", "author", "{{attorneyId}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all posts by a specific author"
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "event": [
@@ -1195,6 +1550,18 @@
       "value": "",
       "type": "string",
       "description": "Sample practice area ID for testing (auto-populated from responses)"
+    },
+    {
+      "key": "blogCategoryId",
+      "value": "",
+      "type": "string",
+      "description": "Sample blog category ID for testing (auto-populated from responses)"
+    },
+    {
+      "key": "blogPostId",
+      "value": "",
+      "type": "string",
+      "description": "Sample blog post ID for testing (auto-populated from responses)"
     }
   ]
 }

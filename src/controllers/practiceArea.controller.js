@@ -23,7 +23,7 @@ export const listPracticeAreas = asyncHandler(async (req, res) => {
   const query = { isActive: true, isDeleted: false };
 
   if (parent !== undefined) {
-    query.parent = parent === 'null' ? null : parent;
+    query.parentArea = parent === 'null' ? null : parent;
   }
 
   if (featured === 'true') {
@@ -32,8 +32,8 @@ export const listPracticeAreas = asyncHandler(async (req, res) => {
 
   if (search) {
     query.$or = [
-      { 'name.en': { $regex: search, $options: 'i' } },
-      { 'name.es': { $regex: search, $options: 'i' } },
+      { 'title.en': { $regex: search, $options: 'i' } },
+      { 'title.es': { $regex: search, $options: 'i' } },
       { 'description.en': { $regex: search, $options: 'i' } },
       { 'description.es': { $regex: search, $options: 'i' } }
     ];
@@ -43,8 +43,8 @@ export const listPracticeAreas = asyncHandler(async (req, res) => {
   const sort = {};
   if (sortBy === 'displayOrder') {
     sort.displayOrder = sortOrder === 'asc' ? 1 : -1;
-  } else if (sortBy === 'name') {
-    sort['name.en'] = sortOrder === 'asc' ? 1 : -1;
+  } else if (sortBy === 'title') {
+    sort['title.en'] = sortOrder === 'asc' ? 1 : -1;
   }
 
   // Execute query with pagination
@@ -56,7 +56,7 @@ export const listPracticeAreas = asyncHandler(async (req, res) => {
     .sort(sort)
     .limit(paginationData.limit)
     .skip(paginationData.skip)
-    .populate('parent', 'name slug')
+    .populate('parentArea', 'title slug')
     .populate('attorneys', 'name slug title')
     .select('-__v');
 
@@ -67,13 +67,13 @@ export const listPracticeAreas = asyncHandler(async (req, res) => {
 
   // Organize into hierarchical structure if no parent filter
   if (parent === undefined) {
-    const topLevel = practiceAreas.filter(area => !area.parent);
-    const children = practiceAreas.filter(area => area.parent);
+    const topLevel = practiceAreas.filter(area => !area.parentArea);
+    const children = practiceAreas.filter(area => area.parentArea);
 
     const hierarchical = topLevel.map(parentArea => {
       const parentObj = parentArea.toObject();
       parentObj.children = children
-        .filter(child => child.parent._id.toString() === parentArea._id.toString())
+        .filter(child => child.parentArea._id.toString() === parentArea._id.toString())
         .map(child => child.toObject());
       return parentObj;
     });
@@ -101,18 +101,16 @@ export const getPracticeArea = asyncHandler(async (req, res) => {
   if (id.match(/^[0-9a-fA-F]{24}$/)) {
     practiceArea = await PracticeArea
       .findOne({ _id: id, isActive: true, isDeleted: false })
-      .populate('parent', 'name slug')
-      .populate('attorneys', 'name slug title bio media.profilePhoto')
-      .populate('children', 'name slug description');
+      .populate('parentArea', 'title slug')
+      .populate('attorneys', 'name slug title bio profilePhoto')
+      .populate('subAreas', 'title slug description');
   } else {
     // Find by slug
-    const slugQuery = {};
-    slugQuery[`slug.${language}`] = id;
     practiceArea = await PracticeArea
-      .findOne({ ...slugQuery, isActive: true, isDeleted: false })
-      .populate('parent', 'name slug')
-      .populate('attorneys', 'name slug title bio media.profilePhoto')
-      .populate('children', 'name slug description');
+      .findOne({ slug: id, isActive: true, isDeleted: false })
+      .populate('parentArea', 'title slug')
+      .populate('attorneys', 'name slug title bio profilePhoto')
+      .populate('subAreas', 'title slug description');
   }
 
   if (!practiceArea) {
@@ -125,10 +123,10 @@ export const getPracticeArea = asyncHandler(async (req, res) => {
 // Create practice area (admin only)
 export const createPracticeArea = asyncHandler(async (req, res) => {
   const {
-    name,
+    title,
     slug,
     description,
-    parent,
+    parentArea,
     services,
     faqs,
     benefits,
@@ -143,27 +141,25 @@ export const createPracticeArea = asyncHandler(async (req, res) => {
 
   // Check for duplicate slugs
   if (slug) {
-    const existingEn = await PracticeArea.findOne({ 'slug.en': slug.en });
-    const existingEs = await PracticeArea.findOne({ 'slug.es': slug.es });
-    
-    if (existingEn || existingEs) {
+    const existing = await PracticeArea.findOne({ slug });
+    if (existing) {
       throw new ApiError('Slug already exists', 400, 'DUPLICATE_SLUG');
     }
   }
 
   // Check if parent exists
-  if (parent) {
-    const parentArea = await PracticeArea.findById(parent);
-    if (!parentArea) {
+  if (parentArea) {
+    const parentPracticeArea = await PracticeArea.findById(parentArea);
+    if (!parentPracticeArea) {
       throw new ApiError('Parent practice area not found', 404, 'PARENT_NOT_FOUND');
     }
   }
 
   const practiceArea = new PracticeArea({
-    name,
+    title,
     slug,
     description: description || {},
-    parent,
+    parentArea,
     services: services || { en: [], es: [] },
     faqs: faqs || [],
     benefits: benefits || { en: [], es: [] },

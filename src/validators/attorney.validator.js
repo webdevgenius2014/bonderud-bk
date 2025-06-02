@@ -72,6 +72,7 @@ export const attorneyValidation = {
     slug: bilingualSlug,
     title: bilingualString.required(),
     bio: bilingualString.required(),
+    shortBio: bilingualString.required(),
     specialties: bilingualArray,
     education: Joi.object({
       en: Joi.array().items(educationItem.required()),

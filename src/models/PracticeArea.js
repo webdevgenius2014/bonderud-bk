@@ -483,7 +483,7 @@ practiceAreaSchema.methods.getAttorneys = function() {
     isActive: true,
     isPublished: true
   })
-  .select('firstName lastName fullName title shortBio profilePhoto slug displayOrder')
+  .select('name title shortBio profilePhoto slug displayOrder')
   .sort({ displayOrder: 1, createdAt: -1 });
 };
 
@@ -496,7 +496,7 @@ practiceAreaSchema.methods.getLeadAttorney = function() {
     isActive: true,
     isPublished: true
   })
-  .select('firstName lastName fullName title bio profilePhoto slug contact');
+  .select('name title bio profilePhoto slug contact');
 };
 
 // Create and export the model

@@ -158,6 +158,11 @@ export const createUser = asyncHandler(async (req, res) => {
     password,
     role: role || 'viewer',
     profile,
+    auth: {
+      isEmailVerified: false,
+      loginAttempts: 0,
+      isTwoFactorEnabled: false
+    },
     isActive: isActive !== false,
     createdBy: req.user._id,
     updatedBy: req.user._id

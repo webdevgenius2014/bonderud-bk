@@ -44,7 +44,7 @@ export const practiceAreaValidation = {
     featured: Joi.boolean(),
     hasAttorneys: Joi.boolean(),
     search: Joi.string().trim().min(2),
-    sortBy: Joi.string().valid('displayOrder', 'name').default('displayOrder'),
+    sortBy: Joi.string().valid('displayOrder', 'title').default('displayOrder'),
     sortOrder: Joi.string().valid('asc', 'desc').default('asc')
   }),
 
@@ -68,10 +68,10 @@ export const practiceAreaValidation = {
 
   // Create/Update schemas
   create: Joi.object({
-    name: bilingualString.required(),
+    title: bilingualString.required(),
     slug: bilingualSlug,
     description: bilingualString.required(),
-    parent: Joi.string().hex().length(24).allow(null),
+    parentArea: Joi.string().hex().length(24).allow(null),
     services: bilingualArray,
     faqs: Joi.array().items(faqItem),
     benefits: bilingualArray,
@@ -124,10 +124,10 @@ export const practiceAreaValidation = {
   }),
 
   update: Joi.object({
-    name: bilingualString,
+    title: bilingualString,
     slug: bilingualSlug,
     description: bilingualString,
-    parent: Joi.string().hex().length(24).allow(null),
+    parentArea: Joi.string().hex().length(24).allow(null),
     services: bilingualArray,
     faqs: Joi.array().items(faqItem),
     benefits: bilingualArray,

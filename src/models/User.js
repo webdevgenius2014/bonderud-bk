@@ -158,7 +158,11 @@ const userSchema = new Schema({
   },
   auth: {
     type: userAuthSchema,
-    default: () => ({})
+    default: () => ({
+      isEmailVerified: false,
+      loginAttempts: 0,
+      isTwoFactorEnabled: false
+    })
   },
   permissions: {
     type: [String],

@@ -109,15 +109,15 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({ email: email.toLowerCase() })
-    .select('+password +loginAttempts +lockUntil');
+    .select('+password +auth.loginAttempts +auth.lockUntil');
 
   if (!user) {
     throw new ApiError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
   }
 
   // Check if account is locked
-  if (user.lockUntil && user.lockUntil > Date.now()) {
-    const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
+  if (user.auth.lockUntil && user.auth.lockUntil > Date.now()) {
+    const minutesLeft = Math.ceil((user.auth.lockUntil - Date.now()) / 60000);
     throw new ApiError(
       `Account locked. Try again in ${minutesLeft} minutes`,
       423,
@@ -130,10 +130,10 @@ export const login = asyncHandler(async (req, res) => {
 
   if (!isPasswordValid) {
     // Increment login attempts
-    user.loginAttempts += 1;
+    user.auth.loginAttempts += 1;
 
-    if (user.loginAttempts >= 5) {
-      user.lockUntil = new Date(Date.now() + 30 * 60 * 1000); // Lock for 30 minutes
+    if (user.auth.loginAttempts >= 5) {
+      user.auth.lockUntil = new Date(Date.now() + 30 * 60 * 1000); // Lock for 30 minutes
       await user.save();
       throw new ApiError('Account locked due to multiple failed attempts', 423, 'ACCOUNT_LOCKED');
     }
@@ -142,10 +142,7 @@ export const login = asyncHandler(async (req, res) => {
     throw new ApiError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
   }
 
-  // Check if email is verified
-  if (!user.auth.isEmailVerified) {
-    throw new ApiError('Please verify your email first', 401, 'EMAIL_NOT_VERIFIED');
-  }
+  // Email verification check removed - allowing login without verification
 
   // Check if account is active
   if (!user.isActive) {
@@ -154,8 +151,8 @@ export const login = asyncHandler(async (req, res) => {
 
   // Reset login attempts
   user.auth.loginAttempts = 0;
-  user.lockUntil = undefined;
-  user.lastLogin = new Date();
+  user.auth.lockUntil = undefined;
+  user.auth.lastLogin = new Date();
 
   // Generate tokens
   const { accessToken, refreshToken } = generateTokens(user._id);

@@ -326,27 +326,14 @@ const availabilitySchema = new Schema({
  * Main Attorney Schema
  */
 const attorneySchema = new Schema({
-  firstName: {
-    type: String,
-    required: [true, 'First name is required'],
-    trim: true,
-    maxlength: [50, 'First name cannot exceed 50 characters']
+  name: {
+    type: bilingualContentSchema,
+    required: [true, 'Name is required']
   },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
-    trim: true,
-    maxlength: [50, 'Last name cannot exceed 50 characters']
-  },
-  middleName: {
-    type: String,
-    trim: true,
-    maxlength: [50, 'Middle name cannot exceed 50 characters']
-  },
-  suffix: {
-    type: String,
-    trim: true,
-    maxlength: [10, 'Suffix cannot exceed 10 characters']
+  slug: {
+    type: bilingualContentSchema,
+    unique: true,
+    sparse: true
   },
   barNumber: {
     type: String,
@@ -372,46 +359,39 @@ const attorneySchema = new Schema({
     type: bilingualContentSchema,
     required: [true, 'Short bio is required']
   },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    lowercase: true,
-    trim: true,
-    validate: {
-      validator(v) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-      },
-      message: 'Please provide a valid email address'
-    }
-  },
-  phone: {
-    type: String,
-    required: [true, 'Phone number is required'],
-    validate: {
-      validator(v) {
-        return /^\+?[\d\s-()]{10,}$/.test(v);
-      },
-      message: 'Please provide a valid phone number'
-    }
-  },
-  extension: String,
-  directLine: {
-    type: String,
-    validate: {
-      validator(v) {
-        return !v || /^\+?[\d\s-()]{10,}$/.test(v);
-      },
-      message: 'Please provide a valid direct line number'
-    }
-  },
-  fax: {
-    type: String,
-    validate: {
-      validator(v) {
-        return !v || /^\+?[\d\s-()]{10,}$/.test(v);
-      },
-      message: 'Please provide a valid fax number'
-    }
+  contact: {
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      lowercase: true,
+      trim: true,
+      validate: {
+        validator(v) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        },
+        message: 'Please provide a valid email address'
+      }
+    },
+    phone: {
+      type: String,
+      required: [true, 'Phone number is required'],
+      validate: {
+        validator(v) {
+          return /^\+?[\d\s-()]{10,}$/.test(v);
+        },
+        message: 'Please provide a valid phone number'
+      }
+    },
+    officePhone: {
+      type: String,
+      validate: {
+        validator(v) {
+          return !v || /^\+?[\d\s-()]{10,}$/.test(v);
+        },
+        message: 'Please provide a valid office phone number'
+      }
+    },
+    extension: String
   },
   education: [educationSchema],
   experience: [experienceSchema],
@@ -454,29 +434,23 @@ const attorneySchema = new Schema({
   },
   joiningDate: {
     type: Date,
-    required: [true, 'Joining date is required']
-  },
-  slug: {
-    type: String,
-    unique: true,
-    lowercase: true,
-    trim: true
+    default: Date.now
   },
   metaTitle: {
     type: bilingualContentSchema,
-    required: [true, 'Meta title is required']
+    default: () => ({ en: '', es: '' })
   },
   metaDescription: {
     type: bilingualContentSchema,
-    required: [true, 'Meta description is required']
+    default: () => ({ en: '', es: '' })
   },
   availability: {
     type: availabilitySchema,
-    required: true
+    default: () => ({})
   },
   specialties: {
     type: bilingualContentSchema,
-    required: [true, 'Specialties are required']
+    default: () => ({ en: [], es: [] })
   },
   displayOrder: {
     type: Number,
@@ -505,9 +479,11 @@ const attorneySchema = new Schema({
 });
 
 // Indexes for performance
-attorneySchema.index({ slug: 1 }, { unique: true });
-attorneySchema.index({ email: 1 });
-attorneySchema.index({ firstName: 1, lastName: 1 });
+attorneySchema.index({ 'slug.en': 1 }, { unique: true, sparse: true });
+attorneySchema.index({ 'slug.es': 1 }, { unique: true, sparse: true });
+attorneySchema.index({ 'contact.email': 1 });
+attorneySchema.index({ 'name.en': 1 });
+attorneySchema.index({ 'name.es': 1 });
 attorneySchema.index({ isActive: 1 });
 attorneySchema.index({ isPublished: 1 });
 attorneySchema.index({ isFeatured: 1 });
@@ -521,8 +497,8 @@ attorneySchema.index({ createdAt: -1 });
 
 // Text index for search functionality
 attorneySchema.index({
-  'firstName': 'text',
-  'lastName': 'text',
+  'name.en': 'text',
+  'name.es': 'text',
   'bio.en': 'text',
   'bio.es': 'text',
   'specialties.en': 'text',
@@ -531,17 +507,14 @@ attorneySchema.index({
 
 // Virtual fields
 attorneySchema.virtual('fullName').get(function() {
-  const parts = [this.firstName];
-  if (this.middleName) parts.push(this.middleName);
-  parts.push(this.lastName);
-  if (this.suffix) parts.push(this.suffix);
-  return parts.join(' ');
+  return {
+    en: this.name?.en || '',
+    es: this.name?.es || this.name?.en || ''
+  };
 });
 
-attorneySchema.virtual('formalName').get(function() {
-  const parts = [this.lastName];
-  if (this.suffix) parts.push(this.suffix);
-  return `${this.firstName} ${parts.join(' ')}`;
+attorneySchema.virtual('displayName').get(function() {
+  return this.name?.en || '';
 });
 
 attorneySchema.virtual('yearsOfExperience').get(function() {
@@ -559,12 +532,25 @@ attorneySchema.virtual('isCurrentlyEmployed').get(function() {
 
 // Pre-save middleware for slug generation
 attorneySchema.pre('save', function(next) {
-  if (this.isModified('firstName') || this.isModified('lastName') || !this.slug) {
-    this.slug = slugify(`${this.firstName}-${this.lastName}`, {
-      lower: true,
-      strict: true,
-      remove: /[*+~.()'"!:@]/g
-    });
+  if (this.isModified('name') || !this.slug || !this.slug.en) {
+    if (this.name?.en) {
+      const enSlug = slugify(this.name.en, {
+        lower: true,
+        strict: true,
+        remove: /[*+~.()'"!:@]/g
+      });
+      
+      const esSlug = this.name.es ? slugify(this.name.es, {
+        lower: true,
+        strict: true,
+        remove: /[*+~.()'"!:@]/g
+      }) : enSlug;
+      
+      this.slug = {
+        en: enSlug,
+        es: esSlug
+      };
+    }
   }
   next();
 });
@@ -616,7 +602,7 @@ attorneySchema.statics.findAcceptingClients = function() {
   }).sort({ displayOrder: 1, createdAt: -1 });
 };
 
-attorneySchema.statics.searchAttorneys = function(query) {
+attorneySchema.statics.searchAttorneys = function(query, language = 'en') {
   return this.find({
     $text: { $search: query },
     isActive: true,
@@ -626,6 +612,15 @@ attorneySchema.statics.searchAttorneys = function(query) {
   }).sort({
     score: { $meta: 'textScore' },
     displayOrder: 1
+  });
+};
+
+attorneySchema.statics.findBySlug = function(slug, language = 'en') {
+  const slugField = `slug.${language}`;
+  return this.findOne({ 
+    [slugField]: slug,
+    isActive: true,
+    isPublished: true 
   });
 };
 
