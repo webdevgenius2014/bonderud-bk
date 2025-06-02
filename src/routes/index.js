@@ -14,7 +14,8 @@ import dashboardRoutes from './dashboard.routes.js';
 const router = Router();
 
 // Swagger documentation
-router.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+router.use('/api/docs', swaggerUi.serve);
+router.get('/api/docs', swaggerUi.setup(swaggerSpec));
 
 // API routes
 router.use(`${env.API_PREFIX}/${env.API_VERSION}/auth`, authRoutes);

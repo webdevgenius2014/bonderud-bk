@@ -11,13 +11,13 @@ const generateTokens = (userId) => {
   const accessToken = jwt.sign(
     { userId, type: 'access' },
     env.JWT_SECRET,
-    { expiresIn: env.JWT_EXPIRE }
+    { expiresIn: env.JWT_EXPIRES_IN }
   );
 
   const refreshToken = jwt.sign(
     { userId, type: 'refresh' },
     env.JWT_REFRESH_SECRET,
-    { expiresIn: env.JWT_REFRESH_EXPIRE }
+    { expiresIn: env.JWT_REFRESH_EXPIRES_IN }
   );
 
   return { accessToken, refreshToken };
@@ -42,7 +42,9 @@ export const register = asyncHandler(async (req, res) => {
       preferredLanguage: profile.preferredLanguage || 'en'
     },
     role: 'viewer', // Default role for new registrations
-    isEmailVerified: false, // Require email verification
+    auth:{
+      isEmailVerified: false,
+     }, // Require email verification
     isActive: true
   });
 
@@ -141,7 +143,7 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   // Check if email is verified
-  if (!user.isEmailVerified) {
+  if (!user.auth.isEmailVerified) {
     throw new ApiError('Please verify your email first', 401, 'EMAIL_NOT_VERIFIED');
   }
 
@@ -151,7 +153,7 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   // Reset login attempts
-  user.loginAttempts = 0;
+  user.auth.loginAttempts = 0;
   user.lockUntil = undefined;
   user.lastLogin = new Date();
 
@@ -375,7 +377,7 @@ export const verifyEmail = asyncHandler(async (req, res) => {
     throw new ApiError('Invalid verification token', 400, 'INVALID_TOKEN');
   }
 
-  user.isEmailVerified = true;
+  user.auth.isEmailVerified = true;
   user.emailVerificationToken = undefined;
   await user.save();
 

@@ -1,0 +1,1200 @@
+{
+  "info": {
+    "name": "Bonderud Law Firm API - Complete Collection",
+    "_postman_id": "bonderud-law-api-complete-2025",
+    "description": "Complete API collection for Bonderud Law Firm - Bilingual (English/Spanish) REST API\n\n## Features\n- JWT-based authentication with refresh tokens\n- Role-based access control (admin, editor, viewer)\n- Bilingual content support (English/Spanish)\n- Comprehensive user, attorney, and practice area management\n- File upload support for media assets\n- Advanced search and filtering capabilities\n\n## Authentication\nMost endpoints require authentication via JWT Bearer token.\nInclude the token in the Authorization header: `Bearer <token>`\n\n## Rate Limiting\nAPI requests are limited to 100 requests per 15 minutes per IP address.\n\n## Base URL\n- Development: http://localhost:3003/api/v1\n- Production: https://api.bonderudlaw.com/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "System",
+      "description": "System health and API information endpoints",
+      "item": [
+        {
+          "name": "API Welcome",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains API info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "    pm.expect(jsonData).to.have.property('version');",
+                  "    pm.expect(jsonData).to.have.property('endpoints');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Returns basic API information including version and available endpoints"
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('API is healthy', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('OK');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the API is running and healthy"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization endpoints",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+                  "    pm.collectionVariables.set('userId', response.data.user._id);",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains user and tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "    pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "    pm.expect(jsonData.data).to.have.property('refreshToken');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Test@123456\",\n  \"profile\": {\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1-555-0123\",\n    \"preferredLanguage\": \"en\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account. Default role is 'viewer'. Admin must manually upgrade roles."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+                  "    pm.collectionVariables.set('userId', response.data.user._id);",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "    pm.expect(jsonData.data).to.have.property('refreshToken');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@bonderudlaw.com\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticate user and receive access and refresh tokens. Account will be locked after 5 failed attempts."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains new tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "    pm.expect(jsonData.data).to.have.property('refreshToken');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Use refresh token to get new access token"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('accessToken', '');",
+                  "    pm.collectionVariables.set('refreshToken', '');",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Invalidate refresh token and logout user"
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "description": "Send password reset email to user"
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset-token-from-email\",\n  \"password\": \"NewPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            },
+            "description": "Reset password using token from email"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"verification-token-from-email\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-email"]
+            },
+            "description": "Verify user email using token from email"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User management operations",
+      "item": [
+        {
+          "name": "Get All Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains users array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "    pm.expect(jsonData).to.have.property('pagination');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=10&sort=createdAt&order=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt",
+                  "description": "Field to sort by"
+                },
+                {
+                  "key": "order",
+                  "value": "desc",
+                  "description": "Sort order (asc/desc)"
+                },
+                {
+                  "key": "role",
+                  "value": "admin",
+                  "description": "Filter by role",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "description": "Filter by active status",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "john",
+                  "description": "Search by name or email",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve paginated list of users. Requires admin or canViewUsers permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"TempPassword@123\",\n  \"role\": \"editor\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Doe\",\n    \"bio\": \"Legal assistant with 5 years experience\",\n    \"phone\": \"+1-555-0456\",\n    \"department\": \"Legal\",\n    \"title\": \"Senior Legal Assistant\",\n    \"preferredLanguage\": \"en\"\n  },\n  \"permissions\": {\n    \"canManageAttorneys\": true,\n    \"canManagePracticeAreas\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Create a new user account. Requires admin role or canCreateUsers permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Get authenticated user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Current User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile\": {\n    \"firstName\": \"Updated\",\n    \"lastName\": \"Name\",\n    \"bio\": \"Updated bio information\",\n    \"phone\": \"+1-555-9999\",\n    \"preferredLanguage\": \"es\",\n    \"timezone\": \"America/New_York\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Update authenticated user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Get specific user details. Requires admin role or appropriate permissions."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"admin\",\n  \"profile\": {\n    \"title\": \"Senior Partner\",\n    \"department\": \"Management\"\n  },\n  \"permissions\": {\n    \"canManageSettings\": true,\n    \"canAccessAnalytics\": true\n  },\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Update user details. Requires admin role or canEditUsers permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Soft delete a user (marks as deleted). Requires admin role or canDeleteUsers permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Change User Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"OldPassword@123\",\n  \"password\": \"NewPassword@456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "change-password"]
+            },
+            "description": "Admin can change any user's password. Users can only change their own password."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attorneys",
+      "description": "Attorney profile management",
+      "item": [
+        {
+          "name": "Get All Attorneys",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains attorneys array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "if (pm.response.json().data.length > 0) {",
+                  "    pm.collectionVariables.set('attorneyId', pm.response.json().data[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attorneys?page=1&limit=10&sort=displayOrder&order=asc&language=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "displayOrder"
+                },
+                {
+                  "key": "order",
+                  "value": "asc"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "isPublished",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "isFeatured",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "isPartner",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "practiceArea",
+                  "value": "practice-area-id",
+                  "disabled": true
+                },
+                {
+                  "key": "isAcceptingNewClients",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "criminal defense",
+                  "disabled": true
+                },
+                {
+                  "key": "language",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "Retrieve paginated list of attorneys with various filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Featured Attorneys",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attorneys/featured?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys", "featured"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Get list of featured attorneys sorted by display order"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attorney by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attorneys/{{attorneyId}}?language=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys", "{{attorneyId}}"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "Get specific attorney details"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Attorney",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Maria\",\n  \"lastName\": \"Rodriguez\",\n  \"middleName\": \"Elena\",\n  \"suffix\": \"Esq.\",\n  \"barNumber\": \"FL123456\",\n  \"title\": {\n    \"en\": \"Senior Partner\",\n    \"es\": \"Socio Principal\"\n  },\n  \"bio\": {\n    \"en\": \"Experienced criminal defense attorney with over 15 years of practice. Specializes in DUI, drug offenses, and white-collar crimes.\",\n    \"es\": \"Abogada experimentada en defensa penal con más de 15 años de práctica. Se especializa en DUI, delitos de drogas y delitos de cuello blanco.\"\n  },\n  \"shortBio\": {\n    \"en\": \"15+ years criminal defense specialist\",\n    \"es\": \"Especialista en defensa penal con más de 15 años\"\n  },\n  \"specialties\": {\n    \"en\": \"Criminal Defense, DUI, Drug Offenses, White-Collar Crimes\",\n    \"es\": \"Defensa Penal, DUI, Delitos de Drogas, Delitos de Cuello Blanco\"\n  },\n  \"email\": \"maria.rodriguez@bonderudlaw.com\",\n  \"phone\": \"+1-305-555-0123\",\n  \"extension\": \"101\",\n  \"directLine\": \"+1-305-555-0124\",\n  \"fax\": \"+1-305-555-0125\",\n  \"education\": [\n    {\n      \"institution\": {\n        \"en\": \"University of Miami School of Law\",\n        \"es\": \"Escuela de Derecho de la Universidad de Miami\"\n      },\n      \"degree\": {\n        \"en\": \"Juris Doctor\",\n        \"es\": \"Doctor en Jurisprudencia\"\n      },\n      \"fieldOfStudy\": {\n        \"en\": \"Criminal Law\",\n        \"es\": \"Derecho Penal\"\n      },\n      \"graduationYear\": 2008,\n      \"honors\": {\n        \"en\": \"Magna Cum Laude\",\n        \"es\": \"Magna Cum Laude\"\n      },\n      \"description\": {\n        \"en\": \"Graduated top 10% of class\",\n        \"es\": \"Graduado en el 10% superior de la clase\"\n      },\n      \"isHighlighted\": true\n    }\n  ],\n  \"experience\": [\n    {\n      \"position\": {\n        \"en\": \"Senior Partner\",\n        \"es\": \"Socio Principal\"\n      },\n      \"company\": {\n        \"en\": \"Bonderud Law Firm\",\n        \"es\": \"Bufete Bonderud\"\n      },\n      \"location\": {\n        \"en\": \"Miami, FL\",\n        \"es\": \"Miami, FL\"\n      },\n      \"startDate\": \"2015-01-01\",\n      \"description\": {\n        \"en\": \"Leading criminal defense practice with focus on complex cases\",\n        \"es\": \"Dirigiendo práctica de defensa penal con enfoque en casos complejos\"\n      },\n      \"achievements\": {\n        \"en\": \"Successfully defended over 500 criminal cases with 95% success rate\",\n        \"es\": \"Defendió exitosamente más de 500 casos penales con 95% de éxito\"\n      },\n      \"isCurrentPosition\": true,\n      \"isHighlighted\": true\n    }\n  ],\n  \"certifications\": [\n    {\n      \"name\": {\n        \"en\": \"Board Certified Criminal Trial Lawyer\",\n        \"es\": \"Abogado Certificado en Juicios Penales\"\n      },\n      \"issuingOrganization\": {\n        \"en\": \"Florida Bar Association\",\n        \"es\": \"Colegio de Abogados de Florida\"\n      },\n      \"issueDate\": \"2012-06-01\",\n      \"expirationDate\": \"2025-06-01\",\n      \"credentialId\": \"FL-CCL-2012-001\",\n      \"credentialUrl\": \"https://www.floridabar.org/verify/FL-CCL-2012-001\",\n      \"description\": {\n        \"en\": \"Specialized certification in criminal trial advocacy\",\n        \"es\": \"Certificación especializada en defensa de juicios penales\"\n      }\n    }\n  ],\n  \"awards\": [\n    {\n      \"title\": {\n        \"en\": \"Top Criminal Defense Attorney\",\n        \"es\": \"Mejor Abogado de Defensa Penal\"\n      },\n      \"organization\": {\n        \"en\": \"Miami Legal Awards\",\n        \"es\": \"Premios Legales de Miami\"\n      },\n      \"year\": 2023,\n      \"description\": {\n        \"en\": \"Recognized for outstanding criminal defense work\",\n        \"es\": \"Reconocida por trabajo excepcional en defensa penal\"\n      },\n      \"category\": {\n        \"en\": \"Excellence in Criminal Defense\",\n        \"es\": \"Excelencia en Defensa Penal\"\n      }\n    }\n  ],\n  \"memberships\": [\n    {\n      \"organization\": {\n        \"en\": \"Florida Association of Criminal Defense Lawyers\",\n        \"es\": \"Asociación de Abogados de Defensa Penal de Florida\"\n      },\n      \"position\": {\n        \"en\": \"Board Member\",\n        \"es\": \"Miembro de la Junta\"\n      },\n      \"startDate\": \"2015-01-01\",\n      \"description\": {\n        \"en\": \"Active member serving on the ethics committee\",\n        \"es\": \"Miembro activo sirviendo en el comité de ética\"\n      },\n      \"isActive\": true\n    }\n  ],\n  \"languages\": [\n    {\n      \"language\": {\n        \"en\": \"English\",\n        \"es\": \"Inglés\"\n      },\n      \"proficiency\": \"native\",\n      \"isCertified\": false\n    },\n    {\n      \"language\": {\n        \"en\": \"Spanish\",\n        \"es\": \"Español\"\n      },\n      \"proficiency\": \"fluent\",\n      \"isCertified\": true,\n      \"certificationDetails\": {\n        \"en\": \"Certified Legal Interpreter\",\n        \"es\": \"Intérprete Legal Certificado\"\n      }\n    }\n  ],\n  \"practiceAreas\": [\"practice-area-id-1\", \"practice-area-id-2\"],\n  \"primaryPracticeArea\": \"practice-area-id-1\",\n  \"availability\": {\n    \"isAcceptingNewClients\": true,\n    \"preferredContactMethod\": \"phone\",\n    \"responseTimeExpectation\": {\n      \"en\": \"Within 2 hours during business hours\",\n      \"es\": \"Dentro de 2 horas durante horario comercial\"\n    },\n    \"consultationTypes\": [\"in_person\", \"phone\", \"video\"],\n    \"availableHours\": {\n      \"timezone\": \"America/New_York\",\n      \"schedule\": [\n        {\n          \"day\": \"monday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"tuesday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"wednesday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"thursday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"17:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"friday\",\n          \"startTime\": \"09:00\",\n          \"endTime\": \"16:00\",\n          \"isAvailable\": true\n        },\n        {\n          \"day\": \"saturday\",\n          \"isAvailable\": false\n        },\n        {\n          \"day\": \"sunday\",\n          \"isAvailable\": false\n        }\n      ]\n    }\n  },\n  \"socialProfiles\": [\n    {\n      \"platform\": \"linkedin\",\n      \"url\": \"https://linkedin.com/in/maria-rodriguez-attorney\",\n      \"username\": \"maria-rodriguez-attorney\",\n      \"isPublic\": true\n    },\n    {\n      \"platform\": \"twitter\",\n      \"url\": \"https://twitter.com/MariaRodriguezEsq\",\n      \"username\": \"MariaRodriguezEsq\",\n      \"isPublic\": true\n    }\n  ],\n  \"personalWebsite\": \"https://www.mariadefenselaw.com\",\n  \"joiningDate\": \"2015-01-01\",\n  \"isPartner\": true,\n  \"isFeatured\": true,\n  \"displayOrder\": 1,\n  \"metaTitle\": {\n    \"en\": \"Maria Rodriguez - Criminal Defense Attorney | Bonderud Law\",\n    \"es\": \"Maria Rodriguez - Abogada de Defensa Penal | Bonderud Law\"\n  },\n  \"metaDescription\": {\n    \"en\": \"Experienced criminal defense attorney in Miami. 15+ years defending DUI, drug offenses, and white-collar crimes. Free consultation.\",\n    \"es\": \"Abogada experimentada en defensa penal en Miami. Más de 15 años defendiendo DUI, delitos de drogas y delitos de cuello blanco. Consulta gratuita.\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attorneys",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys"]
+            },
+            "description": "Create a new attorney profile. Requires authentication and canManageAttorneys permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Attorney",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": {\n    \"en\": \"Managing Partner\",\n    \"es\": \"Socio Gerente\"\n  },\n  \"bio\": {\n    \"en\": \"Updated biography with recent achievements and case wins.\",\n    \"es\": \"Biografía actualizada con logros recientes y casos ganados.\"\n  },\n  \"isActive\": true,\n  \"isPublished\": true,\n  \"isFeatured\": true,\n  \"displayOrder\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attorneys/{{attorneyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys", "{{attorneyId}}"]
+            },
+            "description": "Update attorney details. Requires authentication and canManageAttorneys permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Attorney",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/attorneys/{{attorneyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys", "{{attorneyId}}"]
+            },
+            "description": "Delete an attorney profile. Requires authentication and canManageAttorneys permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Attorney Photo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": "/path/to/attorney-photo.jpg",
+                  "description": "Attorney profile photo (JPEG, PNG, max 5MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attorneys/{{attorneyId}}/upload-photo",
+              "host": ["{{baseUrl}}"],
+              "path": ["attorneys", "{{attorneyId}}", "upload-photo"]
+            },
+            "description": "Upload profile photo for attorney. Requires authentication and canManageAttorneys permission."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Practice Areas",
+      "description": "Practice area management",
+      "item": [
+        {
+          "name": "Get All Practice Areas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains practice areas array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "if (pm.response.json().data.length > 0) {",
+                  "    pm.collectionVariables.set('practiceAreaId', pm.response.json().data[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas?page=1&limit=10&language=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "displayOrder",
+                  "disabled": true
+                },
+                {
+                  "key": "order",
+                  "value": "asc",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "isPublished",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "isFeatured",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "parentArea",
+                  "value": "parent-area-id",
+                  "disabled": true
+                },
+                {
+                  "key": "hasAttorneys",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "criminal",
+                  "disabled": true
+                },
+                {
+                  "key": "language",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "Retrieve paginated list of practice areas"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Practice Areas Hierarchy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas/hierarchy?language=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas", "hierarchy"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "Get complete hierarchical tree structure of practice areas"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Practice Area by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas/{{practiceAreaId}}?language=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas", "{{practiceAreaId}}"],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "en"
+                }
+              ]
+            },
+            "description": "Get specific practice area details"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attorneys in Practice Area",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas/{{practiceAreaId}}/attorneys?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas", "{{practiceAreaId}}", "attorneys"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all attorneys associated with a practice area"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Practice Area",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": {\n    \"en\": \"Criminal Defense\",\n    \"es\": \"Defensa Penal\"\n  },\n  \"shortDescription\": {\n    \"en\": \"Aggressive criminal defense representation\",\n    \"es\": \"Representación agresiva en defensa penal\"\n  },\n  \"description\": {\n    \"en\": \"Our criminal defense team provides aggressive representation for all types of criminal charges, from misdemeanors to serious felonies.\",\n    \"es\": \"Nuestro equipo de defensa penal proporciona representación agresiva para todo tipo de cargos criminales, desde delitos menores hasta delitos graves.\"\n  },\n  \"detailedContent\": {\n    \"en\": \"<p>With over 20 years of combined experience, our criminal defense attorneys have successfully defended thousands of clients facing criminal charges...</p>\",\n    \"es\": \"<p>Con más de 20 años de experiencia combinada, nuestros abogados de defensa penal han defendido exitosamente a miles de clientes que enfrentan cargos criminales...</p>\"\n  },\n  \"excerpt\": {\n    \"en\": \"Expert criminal defense representation with proven results\",\n    \"es\": \"Representación experta en defensa penal con resultados comprobados\"\n  },\n  \"callToAction\": {\n    \"en\": \"Get your free consultation today\",\n    \"es\": \"Obtenga su consulta gratuita hoy\"\n  },\n  \"icon\": \"fas fa-gavel\",\n  \"services\": [\n    {\n      \"name\": {\n        \"en\": \"DUI Defense\",\n        \"es\": \"Defensa DUI\"\n      },\n      \"description\": {\n        \"en\": \"Experienced DUI defense with proven track record\",\n        \"es\": \"Defensa DUI experimentada con historial comprobado\"\n      },\n      \"icon\": \"fas fa-car\",\n      \"isHighlighted\": true,\n      \"order\": 1\n    },\n    {\n      \"name\": {\n        \"en\": \"Drug Crimes\",\n        \"es\": \"Delitos de Drogas\"\n      },\n      \"description\": {\n        \"en\": \"Defense against all drug-related charges\",\n        \"es\": \"Defensa contra todos los cargos relacionados con drogas\"\n      },\n      \"icon\": \"fas fa-pills\",\n      \"isHighlighted\": true,\n      \"order\": 2\n    }\n  ],\n  \"keyFeatures\": [\n    {\n      \"en\": \"24/7 Emergency Response\",\n      \"es\": \"Respuesta de Emergencia 24/7\"\n    },\n    {\n      \"en\": \"Free Initial Consultation\",\n      \"es\": \"Consulta Inicial Gratuita\"\n    },\n    {\n      \"en\": \"Bilingual Legal Team\",\n      \"es\": \"Equipo Legal Bilingüe\"\n    }\n  ],\n  \"faqs\": [\n    {\n      \"question\": {\n        \"en\": \"What should I do if I'm arrested?\",\n        \"es\": \"¿Qué debo hacer si soy arrestado?\"\n      },\n      \"answer\": {\n        \"en\": \"Remain silent and ask for an attorney immediately. Do not answer questions without legal representation.\",\n        \"es\": \"Mantente en silencio y pide un abogado inmediatamente. No respondas preguntas sin representación legal.\"\n      },\n      \"order\": 1,\n      \"isPublished\": true\n    }\n  ],\n  \"statistics\": [\n    {\n      \"label\": {\n        \"en\": \"Cases Won\",\n        \"es\": \"Casos Ganados\"\n      },\n      \"value\": \"95%\",\n      \"description\": {\n        \"en\": \"Success rate in criminal defense cases\",\n        \"es\": \"Tasa de éxito en casos de defensa penal\"\n      },\n      \"order\": 1\n    }\n  ],\n  \"relatedAreas\": [\"related-area-id-1\", \"related-area-id-2\"],\n  \"attorneys\": [\"attorney-id-1\", \"attorney-id-2\"],\n  \"leadAttorney\": \"attorney-id-1\",\n  \"parentArea\": null,\n  \"isFeatured\": true,\n  \"displayOrder\": 1,\n  \"slug\": \"criminal-defense\",\n  \"seo\": {\n    \"metaTitle\": {\n      \"en\": \"Criminal Defense Lawyers Miami | Bonderud Law Firm\",\n      \"es\": \"Abogados de Defensa Penal Miami | Bufete Bonderud\"\n    },\n    \"metaDescription\": {\n      \"en\": \"Experienced criminal defense attorneys in Miami. Free consultation. 95% success rate. Call 24/7 for DUI, drug crimes, and felony defense.\",\n      \"es\": \"Abogados experimentados en defensa penal en Miami. Consulta gratuita. 95% de éxito. Llame 24/7 para DUI, delitos de drogas y defensa de delitos graves.\"\n    },\n    \"keywords\": {\n      \"en\": \"criminal defense, Miami attorney, DUI lawyer, drug crimes, felony defense\",\n      \"es\": \"defensa penal, abogado Miami, abogado DUI, delitos de drogas, defensa de delitos graves\"\n    },\n    \"canonicalUrl\": \"https://www.bonderudlaw.com/practice-areas/criminal-defense\",\n    \"ogImage\": \"https://www.bonderudlaw.com/images/criminal-defense-og.jpg\",\n    \"ogTitle\": {\n      \"en\": \"Top Criminal Defense Lawyers in Miami\",\n      \"es\": \"Mejores Abogados de Defensa Penal en Miami\"\n    },\n    \"ogDescription\": {\n      \"en\": \"Get experienced criminal defense representation. Free consultation available.\",\n      \"es\": \"Obtenga representación experimentada en defensa penal. Consulta gratuita disponible.\"\n    },\n    \"structuredData\": {\n      \"@type\": \"LegalService\",\n      \"@context\": \"https://schema.org\",\n      \"name\": \"Criminal Defense\",\n      \"serviceType\": \"Legal Defense\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas"]
+            },
+            "description": "Create a new practice area. Requires authentication and canManagePracticeAreas permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Practice Area",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": {\n    \"en\": \"Updated Criminal Defense\",\n    \"es\": \"Defensa Penal Actualizada\"\n  },\n  \"description\": {\n    \"en\": \"Updated description with new services and achievements\",\n    \"es\": \"Descripción actualizada con nuevos servicios y logros\"\n  },\n  \"isActive\": true,\n  \"isPublished\": true,\n  \"isFeatured\": true,\n  \"displayOrder\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas/{{practiceAreaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas", "{{practiceAreaId}}"]
+            },
+            "description": "Update practice area details. Requires authentication and canManagePracticeAreas permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Practice Area",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/practice-areas/{{practiceAreaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["practice-areas", "{{practiceAreaId}}"]
+            },
+            "description": "Delete a practice area. Requires authentication and canManagePracticeAreas permission."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-refresh token if needed",
+          "const accessToken = pm.collectionVariables.get('accessToken');",
+          "const refreshToken = pm.collectionVariables.get('refreshToken');",
+          "",
+          "// Check if we need authentication and don't have a token",
+          "if (pm.request.headers.has('Authorization') && !accessToken && refreshToken) {",
+          "    console.log('Attempting to refresh token...');",
+          "    ",
+          "    const refreshRequest = {",
+          "        url: pm.collectionVariables.get('baseUrl') + '/auth/refresh',",
+          "        method: 'POST',",
+          "        header: {",
+          "            'Content-Type': 'application/json'",
+          "        },",
+          "        body: {",
+          "            mode: 'raw',",
+          "            raw: JSON.stringify({",
+          "                refreshToken: refreshToken",
+          "            })",
+          "        }",
+          "    };",
+          "    ",
+          "    pm.sendRequest(refreshRequest, function (err, response) {",
+          "        if (err) {",
+          "            console.log('Token refresh failed:', err);",
+          "        } else if (response.code === 200) {",
+          "            const responseJson = response.json();",
+          "            pm.collectionVariables.set('accessToken', responseJson.data.accessToken);",
+          "            pm.collectionVariables.set('refreshToken', responseJson.data.refreshToken);",
+          "            console.log('Token refreshed successfully');",
+          "        } else {",
+          "            console.log('Token refresh failed with status:', response.code);",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-save tokens from authentication responses",
+          "if (pm.request.url.path.includes('login') || pm.request.url.path.includes('register')) {",
+          "    if (pm.response.code === 200 || pm.response.code === 201) {",
+          "        const response = pm.response.json();",
+          "        if (response.data && response.data.accessToken) {",
+          "            pm.collectionVariables.set('accessToken', response.data.accessToken);",
+          "            pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+          "            console.log('Tokens saved from authentication response');",
+          "        }",
+          "    }",
+          "}",
+          "",
+          "// Auto-save IDs from creation responses",
+          "if (pm.response.code === 201) {",
+          "    const response = pm.response.json();",
+          "    if (response.data && response.data._id) {",
+          "        if (pm.request.url.path.includes('attorneys')) {",
+          "            pm.collectionVariables.set('attorneyId', response.data._id);",
+          "        } else if (pm.request.url.path.includes('practice-areas')) {",
+          "            pm.collectionVariables.set('practiceAreaId', response.data._id);",
+          "        } else if (pm.request.url.path.includes('users')) {",
+          "            pm.collectionVariables.set('userId', response.data._id);",
+          "        }",
+          "    }",
+          "}",
+          "",
+          "// Global response time test",
+          "pm.test('Response time is less than 2000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});",
+          "",
+          "// Global response format test",
+          "if (pm.response.code >= 200 && pm.response.code < 300) {",
+          "    pm.test('Response has success format', function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.property('success');",
+          "        pm.expect(jsonData.success).to.be.true;",
+          "    });",
+          "} else if (pm.response.code >= 400) {",
+          "    pm.test('Error response has proper format', function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.property('success');",
+          "        pm.expect(jsonData.success).to.be.false;",
+          "        pm.expect(jsonData).to.have.property('error');",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3003/api/v1",
+      "type": "string",
+      "description": "Base URL for the API (update for production)"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT access token (auto-populated after login)"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT refresh token (auto-populated after login)"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "Current user ID (auto-populated after login/registration)"
+    },
+    {
+      "key": "attorneyId",
+      "value": "",
+      "type": "string",
+      "description": "Sample attorney ID for testing (auto-populated from responses)"
+    },
+    {
+      "key": "practiceAreaId",
+      "value": "",
+      "type": "string",
+      "description": "Sample practice area ID for testing (auto-populated from responses)"
+    }
+  ]
+}

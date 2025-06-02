@@ -27,7 +27,7 @@ export const authenticateToken = asyncHandler(async (req, res, next) => {
       throw new ApiError('Account is deactivated', 401, 'ACCOUNT_DEACTIVATED');
     }
 
-    if (!user.isEmailVerified) {
+    if (!user.auth.isEmailVerified) {
       throw new ApiError('Email not verified', 401, 'EMAIL_NOT_VERIFIED');
     }
 
@@ -96,7 +96,7 @@ export const optionalAuth = asyncHandler(async (req, res, next) => {
     const user = await User.findById(decoded.userId)
       .select('-password -refreshTokens -resetPasswordToken -resetPasswordExpires');
 
-    if (user && user.isActive && user.isEmailVerified) {
+    if (user && user.isActive && user.auth.isEmailVerified) {
       req.user = user;
     }
   } catch (error) {

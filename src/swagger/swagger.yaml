@@ -1159,21 +1159,34 @@ components:
 
     MediaFile:
       type: object
+      required:
+        - url
+        - alt
+        - filename
+        - mimetype
+        - size
+        - uploadedBy
       properties:
         url:
           type: string
           format: uri
+        alt:
+          $ref: '#/components/schemas/BilingualContent'
+        caption:
+          $ref: '#/components/schemas/BilingualContent'
         filename:
-          type: string
-        originalName:
           type: string
         mimetype:
           type: string
         size:
           type: integer
+          minimum: 0
         uploadedAt:
           type: string
           format: date-time
+        uploadedBy:
+          type: string
+          description: User ID who uploaded the file
 
     ErrorResponse:
       type: object
@@ -1528,6 +1541,11 @@ components:
           type: array
           items:
             type: object
+            required:
+              - institution
+              - degree
+              - fieldOfStudy
+              - graduationYear
             properties:
               institution:
                 $ref: '#/components/schemas/BilingualContent'
@@ -1537,14 +1555,24 @@ components:
                 $ref: '#/components/schemas/BilingualContent'
               graduationYear:
                 type: integer
+                minimum: 1900
               honors:
+                $ref: '#/components/schemas/BilingualContent'
+              description:
                 $ref: '#/components/schemas/BilingualContent'
               isHighlighted:
                 type: boolean
+                default: false
         experience:
           type: array
           items:
             type: object
+            required:
+              - position
+              - company
+              - location
+              - startDate
+              - description
             properties:
               position:
                 $ref: '#/components/schemas/BilingualContent'
@@ -1558,16 +1586,24 @@ components:
               endDate:
                 type: string
                 format: date
+              description:
+                $ref: '#/components/schemas/BilingualContent'
+              achievements:
+                $ref: '#/components/schemas/BilingualContent'
               isCurrentPosition:
                 type: boolean
-              achievements:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BilingualContent'
+                default: false
+              isHighlighted:
+                type: boolean
+                default: false
         certifications:
           type: array
           items:
             type: object
+            required:
+              - name
+              - issuingOrganization
+              - issueDate
             properties:
               name:
                 $ref: '#/components/schemas/BilingualContent'
@@ -1579,10 +1615,21 @@ components:
               expirationDate:
                 type: string
                 format: date
+              credentialId:
+                type: string
+              credentialUrl:
+                type: string
+                format: uri
+              description:
+                $ref: '#/components/schemas/BilingualContent'
         awards:
           type: array
           items:
             type: object
+            required:
+              - title
+              - organization
+              - year
             properties:
               title:
                 $ref: '#/components/schemas/BilingualContent'
@@ -1590,31 +1637,52 @@ components:
                 $ref: '#/components/schemas/BilingualContent'
               year:
                 type: integer
+                minimum: 1900
+              description:
+                $ref: '#/components/schemas/BilingualContent'
+              category:
+                $ref: '#/components/schemas/BilingualContent'
         memberships:
           type: array
           items:
             type: object
+            required:
+              - organization
+              - startDate
             properties:
               organization:
                 $ref: '#/components/schemas/BilingualContent'
               position:
                 $ref: '#/components/schemas/BilingualContent'
-              startYear:
-                type: integer
-              endYear:
-                type: integer
-              isCurrentMember:
+              startDate:
+                type: string
+                format: date
+              endDate:
+                type: string
+                format: date
+              description:
+                $ref: '#/components/schemas/BilingualContent'
+              isActive:
                 type: boolean
+                default: true
         languages:
           type: array
           items:
             type: object
+            required:
+              - language
+              - proficiency
             properties:
               language:
                 $ref: '#/components/schemas/BilingualContent'
               proficiency:
                 type: string
-                enum: [native, fluent, professional, conversational, basic]
+                enum: [native, fluent, conversational, basic]
+              isCertified:
+                type: boolean
+                default: false
+              certificationDetails:
+                $ref: '#/components/schemas/BilingualContent'
         practiceAreas:
           type: array
           items:
@@ -1631,30 +1699,72 @@ components:
             $ref: '#/components/schemas/MediaFile'
         availability:
           type: object
+          required:
+            - isAcceptingNewClients
+            - preferredContactMethod
+            - responseTimeExpectation
+            - consultationTypes
+            - availableHours
           properties:
             isAcceptingNewClients:
               type: boolean
+              default: true
             preferredContactMethod:
               type: string
               enum: [phone, email, form, any]
+              default: any
             responseTimeExpectation:
               $ref: '#/components/schemas/BilingualContent'
             consultationTypes:
               type: array
               items:
                 type: string
-                enum: [inPerson, phone, video, email]
+                enum: [in_person, phone, video, email]
+            availableHours:
+              type: object
+              properties:
+                timezone:
+                  type: string
+                  default: America/New_York
+                schedule:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - day
+                      - isAvailable
+                    properties:
+                      day:
+                        type: string
+                        enum: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+                      startTime:
+                        type: string
+                        pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+                      endTime:
+                        type: string
+                        pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+                      isAvailable:
+                        type: boolean
+                        default: false
         socialProfiles:
           type: array
           items:
             type: object
+            required:
+              - platform
+              - url
             properties:
               platform:
                 type: string
-                enum: [linkedin, twitter, facebook, avvo, martindale]
+                enum: [linkedin, twitter, facebook, instagram, youtube, other]
               url:
                 type: string
                 format: uri
+              username:
+                type: string
+              isPublic:
+                type: boolean
+                default: true
         personalWebsite:
           type: string
           format: uri
@@ -1676,13 +1786,18 @@ components:
           type: integer
         slug:
           type: string
-        seo:
-          type: object
-          properties:
-            metaTitle:
-              $ref: '#/components/schemas/BilingualContent'
-            metaDescription:
-              $ref: '#/components/schemas/BilingualContent'
+        metaTitle:
+          $ref: '#/components/schemas/BilingualContent'
+        metaDescription:
+          $ref: '#/components/schemas/BilingualContent'
+        internalNotes:
+          type: string
+        createdBy:
+          type: string
+          description: User ID who created the attorney
+        updatedBy:
+          type: string
+          description: User ID who last updated the attorney
         createdAt:
           type: string
           format: date-time
@@ -1703,6 +1818,9 @@ components:
         - specialties
         - practiceAreas
         - joiningDate
+        - metaTitle
+        - metaDescription
+        - availability
       properties:
         firstName:
           type: string
@@ -1785,13 +1903,10 @@ components:
           type: boolean
         displayOrder:
           type: integer
-        seo:
-          type: object
-          properties:
-            metaTitle:
-              $ref: '#/components/schemas/BilingualContent'
-            metaDescription:
-              $ref: '#/components/schemas/BilingualContent'
+        metaTitle:
+          $ref: '#/components/schemas/BilingualContent'
+        metaDescription:
+          $ref: '#/components/schemas/BilingualContent'
 
     UpdateAttorneyRequest:
       type: object
@@ -1881,13 +1996,10 @@ components:
           type: boolean
         displayOrder:
           type: integer
-        seo:
-          type: object
-          properties:
-            metaTitle:
-              $ref: '#/components/schemas/BilingualContent'
-            metaDescription:
-              $ref: '#/components/schemas/BilingualContent'
+        metaTitle:
+          $ref: '#/components/schemas/BilingualContent'
+        metaDescription:
+          $ref: '#/components/schemas/BilingualContent'
 
     # Practice Area schemas
     PracticeArea:

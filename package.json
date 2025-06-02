@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "build": "npm run lint && npm run test",
+    "build:prod": "npm ci --only=production && npm run lint && npm run test",
     "seed": "node src/seeders/seed.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
@@ -17,7 +19,13 @@
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
     "format": "prettier --write src/**/*.js",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "deploy": "bash scripts/deploy.sh",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:restart": "pm2 restart bonderud-api",
+    "pm2:stop": "pm2 stop bonderud-api",
+    "pm2:delete": "pm2 delete bonderud-api",
+    "pm2:logs": "pm2 logs bonderud-api"
   },
   "keywords": [
     "nodejs",
