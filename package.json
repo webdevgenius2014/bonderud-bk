@@ -5,9 +5,9 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev": "node api.js && nodemon src/server.js",
-    "start": "node api.js && node src/server.js",
-    "build": "node api.js && npm run lint && npm run test",
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "build": "npm run lint && npm run test",
     "build:prod": "npm ci --only=production && npm run lint && npm run test",
     "seed": "node src/seeders/seed.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
